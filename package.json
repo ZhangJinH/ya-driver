@@ -1,0 +1,25 @@
+{
+  "name": "ya-driver",
+  "version": "0.0.1-alpha.0",
+  "description": "The driver support Ya GUI or Ya cli. docker image",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/q13/ya-driver.git"
+  },
+  "keywords": [
+    "driver",
+    "ya",
+    "gui",
+    "docker"
+  ],
+  "author": "13",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/q13/ya-driver/issues"
+  },
+  "homepage": "https://github.com/q13/ya-driver#readme"
+}
