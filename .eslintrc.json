@@ -4,9 +4,9 @@
     "node": true,
     "es6": true
   },
+  "parser": "babel-eslint",
   "extends": [
-    "standard",
-    "plugin:vue/essential"
+    "standard"
   ],
   "globals": {
     "$": true,

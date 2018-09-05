@@ -8,7 +8,11 @@
     "node_modules"
   ],
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./bin/**/*",
+    "./lib/**/*",
+    "./presets/**/*",
+    "./util/**/*"
   ],
   "typingOptions": {
     "enableAutoDiscovery": true
