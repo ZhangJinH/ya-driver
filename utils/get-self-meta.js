@@ -3,7 +3,10 @@
  */
 const pkgJson = require('../package.json');
 const semver = require('semver');
-const getRemotePackageVersion = require('@vue/cli/lib/util/getPackageVersion');
+const request = require('request-promise-native');
+const {
+  registry
+} = require('../config/vars');
 
 module.exports = {
   /**
@@ -22,7 +25,12 @@ module.exports = {
    * Get the remote pkg latest version
    */
   async getLatestVersion() {
-    const res = await getRemotePackageVersion(`${pkgJson.name}`, 'latest');
+    const res = await request({
+      method: 'GET',
+      resolveWithFullResponse: true, // real content in body
+      json: true,
+      uri: `${registry}/${encodeURIComponent(pkgJson.name).replace(/^%40/, '@')}/latest`
+    });
     if (res.statusCode === 200) {
       const { version } = res.body;
       if (semver.valid(version)) {

@@ -3,19 +3,37 @@
 const program = require('commander');
 const chalk = require('chalk');
 const { log } = require('../utils/log');
+const normalizeOpts = require('../utils/cli-args');
 
 program
   .version(require('../package').version)
   .usage('<command> [options]');
 
 program
-  .command('create <app-name>')
-  .description('create a new project powered by ya-driver')
-  .option('-m, --packageManager <command>', 'Use specified npm client when installing dependencies')
-  .action((name, cmd) => {
-    const options = cleanArgs(cmd);
-    require('../lib/create')(name, options);
+  .command('create <project-name>')
+  .description('create a new project powered by ya-driver.')
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd);
+    require('../lib/create')(options);
   });
+
+program
+  .command('serve [project-name]')
+  .description('serve project in development mode with zero config.')
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd);
+    require('../lib/serve')(options);
+  });
+
+program
+  .command('build [project-name]')
+  .description('build project in production mode with zero config')
+  .option('-K, --sdk', 'Output the sdk version') // 输出sdk版本
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd);
+    require('../lib/build')(options);
+  });
+
 // add some useful info on help
 program.on('--help', () => {
   log();
@@ -24,18 +42,3 @@ program.on('--help', () => {
 });
 
 program.parse(process.argv);
-
-// commander passes the Command object itself as options,
-// extract only actual options into a fresh object.
-function cleanArgs (cmd) {
-  const args = {};
-  cmd.options.forEach(o => {
-    const key = o.long.replace(/^--/, '');
-    // if an option is not present and Command has a method with the same name
-    // it should not be copied
-    if (typeof cmd[key] !== 'function' && typeof cmd[key] !== 'undefined') {
-      args[key] = cmd[key];
-    }
-  });
-  return args;
-}
