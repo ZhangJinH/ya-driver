@@ -29,6 +29,7 @@ program
   .command('build [project-name]')
   .description('build project in production mode with zero config')
   .option('-K, --sdk', 'Output the sdk version') // 输出sdk版本
+  .option('-D, --app-domain', 'The serve app dmain')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);
     require('../lib/build')(options);

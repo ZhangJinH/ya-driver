@@ -7,8 +7,10 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const {
   npmOnBabel,
   modeMap,
-  browserslist
+  browserslist,
+  filenameCommonPrefix
 } = require('../vars');
+const Project = require('../../lib/project');
 
 module.exports = function (options) {
   const {
@@ -16,12 +18,43 @@ module.exports = function (options) {
     mode
   } = options;
 
-  const main = path.resolve(projectPath, './src/index.js');
-
+  const context = path.resolve(__dirname, '../../'); // context指向工具root path
+  const project = new Project(projectPath); // 放置project相关信息
+  const {
+    outputPath,
+    appName
+  } = project;
+  let publicPath = `/${appName}/`; // 项目名默认就是二级path
+  // join cdn path
+  if (mode === modeMap.PROD) {
+    publicPath = `//cdn-${options.appDomain}${appName}/`;
+  }
+  const main = path.resolve(projectPath, './src/index.js'); // Use absolute path
+  /**
+   * 相对projectPath解析地址
+   * @param {String} rp - relative path
+   */
+  const resolveProject = (rp) => {
+    return path.resolve(projectPath, rp);
+  };
+  // resolve babel loaders
+  const babelExtResolveMap = new Map();
+  ['@babel/preset-env', '@babel/preset-stage-0', '@babel/preset-react', '@babel/preset-flow', '@babel/plugin-transform-runtime', '@babel/plugin-syntax-dynamic-import', 'babel-plugin-lodash'].forEach((name) => {
+    babelExtResolveMap.set(name, require.resolve(`../../node_modules/${name}`));
+  });
   return {
+    mode,
+    context,
     entry: {
       main
     },
+    output: {
+      path: outputPath,
+      filename: `${filenameCommonPrefix}/js/[name].js?v=[chunkhash]`,
+      chunkFilename: `${filenameCommonPrefix}/js/[name].js?v=[chunkhash]`,
+      publicPath
+    },
+    devtool: 'source-map', // chrome devtool更友好
     module: {
       rules: [{
         test: /\.vue$/,
@@ -48,18 +81,18 @@ module.exports = function (options) {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [['@babel/preset-env', {
+            presets: [[babelExtResolveMap.get('@babel/preset-env'), {
               modules: false, // Leave for webpack
               targets: browserslist,
               useBuiltIns: 'usage' // Just for used polyfill
-            }], ['@babel/stage-0', {
+            }], [babelExtResolveMap.get('@babel/preset-stage-0'), {
               useBuiltIns: true // Will use the native built-in instead of trying to polyfill behavior for any plugins that require one.
-            }], '@babel/react', '@babel/flow'],
+            }], babelExtResolveMap.get('@babel/preset-react'), babelExtResolveMap.get('@babel/preset-flow')],
             plugins: [
               '@babel/plugin-transform-runtime',
               '@babel/plugin-syntax-dynamic-import',
               'babel-plugin-lodash'
-            ],
+            ].map((name) => babelExtResolveMap.get(name)),
             cacheDirectory: modeMap.DEV === mode // development下生效
           }
         }
@@ -75,7 +108,18 @@ module.exports = function (options) {
         }, {
           loader: 'postcss-loader',
           options: {
-            sourceMap: true
+            sourceMap: true,
+            ident: 'postcss',
+            plugins: (loader) => [
+              require('postcss-import')({
+                root: projectPath
+              }),
+              require('postcss-preset-env')({
+                stage: 2, // CSS features to polyfill
+                browsers: browserslist
+              }),
+              require('cssnano')()
+            ]
           }
         }, {
           loader: 'sass-loader'
@@ -84,12 +128,38 @@ module.exports = function (options) {
         }, {
           loader: 'stylus-loader'
         }]
+      }, {
+        test: /\.html$/,
+        loader: 'html-loader'
+      }, {
+        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+        loader: 'url-loader',
+        options: {
+          limit: 1024,
+          name: `${filenameCommonPrefix}/img/[name].[ext]?v=[hash]`
+        }
+      }, {
+        test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
+        loader: 'url-loader',
+        options: {
+          limit: 1024,
+          name: `${filenameCommonPrefix}/media/[name].[ext]?v=[hash]`
+        }
+      }, {
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        loader: 'url-loader',
+        options: {
+          limit: 1024,
+          name: `${filenameCommonPrefix}/fonts/[name].[ext]?v=[hash]`
+        }
       }]
     },
     resolve: {
       alias: {
         '+': path.resolve(projectPath, './node_modules/ya-spa-vue/ya'),
-        '@': path.resolve(projectPath, './src')
+        '@': path.resolve(projectPath, './src'),
+        'vue$': resolveProject('node_modules/vue/dist/vue.esm.js'),
+        'ya-ui-vue': resolveProject('node_modules/ya-ui-vue') // For npm link情况，强制指向本项目下ya-ui-vue
       }
     },
     plugins: [
@@ -98,9 +168,11 @@ module.exports = function (options) {
       if (mode === modeMap.PROD) { // 生产环境css提取
         return [
           new MiniCssExtractPlugin({
-            filename: 'style.css'
+            filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
           })
         ];
+      } else {
+        return [];
       }
     })())
   };

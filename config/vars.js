@@ -16,5 +16,6 @@ module.exports = {
     PROD: 'production',
     SDK: 'sdk'
   },
-  browserslist: 'last 2 versions", "last 3 iOS versions", "not ie <= 8", "Android >= 4.4' // Support browser list
+  browserslist: 'last 2 versions", "last 3 iOS versions", "not ie <= 8", "Android >= 4.4', // Support browser list
+  filenameCommonPrefix: 'plus' // 输出文件前缀
 };

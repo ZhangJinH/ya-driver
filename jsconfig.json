@@ -5,14 +5,15 @@
     "allowSyntheticDefaultImports": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".history"
   ],
   "include": [
     "./src/**/*",
     "./bin/**/*",
     "./lib/**/*",
-    "./presets/**/*",
-    "./util/**/*"
+    "./utils/**/*",
+    "./config/**/*"
   ],
   "typingOptions": {
     "enableAutoDiscovery": true
