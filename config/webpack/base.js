@@ -2,8 +2,15 @@
  * The base webpack config
  */
 const path = require('path');
+const fsExtra = require('fs-extra');
+const fs = require('fs');
+const {
+  merge
+} = require('lodash');
+const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {
   npmOnBabel,
   modeMap,
@@ -11,6 +18,13 @@ const {
   filenameCommonPrefix
 } = require('../vars');
 const Project = require('../../lib/project');
+// Resolve self node_modules path
+const resolveDriverNpm = (name) => {
+  return require.resolve(`../../node_modules/${name}`);
+};
+const getRelativeDriverPath = (rp) => {
+  return path.resolve(__dirname, `../../${rp}`);
+};
 
 module.exports = function (options) {
   const {
@@ -22,26 +36,71 @@ module.exports = function (options) {
   const project = new Project(projectPath); // 放置project相关信息
   const {
     outputPath,
-    appName
+    distPath,
+    appVersion,
+    application
   } = project;
-  let publicPath = `/${appName}/`; // 项目名默认就是二级path
-  // join cdn path
-  if (mode === modeMap.PROD) {
-    publicPath = `//cdn-${options.appDomain}${appName}/`;
-  }
+  // html template
+  const htmlTemplate = {
+    ...application.template,
+    title: application.template.title || 'Yazuo App'
+  };
+  // Delete template and templateContent, can't custom
+  delete htmlTemplate.template;
+  delete htmlTemplate.templateContent;
+
+  let publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`; // 项目名默认就是二级path
+  // // join cdn path
+  // if (mode === modeMap.PROD) {
+  //   publicPath = `//cdn-${options.appDomain}${appName}/${appVersion}/`;
+  // }
   const main = path.resolve(projectPath, './src/index.js'); // Use absolute path
+
   /**
    * 相对projectPath解析地址
    * @param {String} rp - relative path
    */
-  const resolveProject = (rp) => {
+  const getRelativeProjectPath = (rp) => {
     return path.resolve(projectPath, rp);
   };
-  // resolve babel loaders
-  const babelExtResolveMap = new Map();
-  ['@babel/preset-env', '@babel/preset-stage-0', '@babel/preset-react', '@babel/preset-flow', '@babel/plugin-transform-runtime', '@babel/plugin-syntax-dynamic-import', 'babel-plugin-lodash'].forEach((name) => {
-    babelExtResolveMap.set(name, require.resolve(`../../node_modules/${name}`));
-  });
+
+  /**
+   * Get the presets style processor
+   * @param {String} preProcessor - style pre-processor name
+   */
+  const getStyleLoaderPresets = (preProcessor) => {
+    let styleLoaderName = 'vue-style-loader';
+    if (preProcessor === 'stylus') { // TODO: stylus文件单独加载用vue-style-loader会导致HMR失效，待查
+      styleLoaderName = 'style-loader';
+    }
+    return [{
+      loader: mode === modeMap.DEV ? styleLoaderName : MiniCssExtractPlugin.loader
+    }, {
+      loader: 'css-loader',
+      options: {
+        importLoaders: 1, // 貌似意思是import语句给下面postcss-loader处理
+        sourceMap: true
+      }
+    }, {
+      loader: 'postcss-loader',
+      options: {
+        syntax: 'sugarss',
+        sourceMap: true,
+        ident: `postcss-${preProcessor}`,
+        plugins: (loader) => [
+          require('postcss-import')({
+            root: projectPath
+          }),
+          require('postcss-preset-env')({
+            stage: 2, // CSS features to polyfill
+            browsers: browserslist
+          }),
+          require('cssnano')()
+        ]
+      }
+    }];
+  };
+  // Return configs
   return {
     mode,
     context,
@@ -50,8 +109,8 @@ module.exports = function (options) {
     },
     output: {
       path: outputPath,
-      filename: `${filenameCommonPrefix}/js/[name].js?v=[chunkhash]`,
-      chunkFilename: `${filenameCommonPrefix}/js/[name].js?v=[chunkhash]`,
+      filename: `${filenameCommonPrefix}/js/[name].js?v=[hash]`,
+      chunkFilename: `${filenameCommonPrefix}/js/[name].js?v=[hash]`,
       publicPath
     },
     devtool: 'source-map', // chrome devtool更友好
@@ -81,53 +140,78 @@ module.exports = function (options) {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [[babelExtResolveMap.get('@babel/preset-env'), {
+            presets: [['@babel/preset-env', {
               modules: false, // Leave for webpack
               targets: browserslist,
               useBuiltIns: 'usage' // Just for used polyfill
-            }], [babelExtResolveMap.get('@babel/preset-stage-0'), {
-              useBuiltIns: true // Will use the native built-in instead of trying to polyfill behavior for any plugins that require one.
-            }], babelExtResolveMap.get('@babel/preset-react'), babelExtResolveMap.get('@babel/preset-flow')],
+            }], ['@babel/preset-react'], ['@babel/preset-flow']].map((preset) => {
+              preset[0] = resolveDriverNpm(preset[0]);
+              return preset;
+            }),
             plugins: [
-              '@babel/plugin-transform-runtime',
-              '@babel/plugin-syntax-dynamic-import',
-              'babel-plugin-lodash'
-            ].map((name) => babelExtResolveMap.get(name)),
+              // Stage 0
+              ['@babel/plugin-proposal-function-bind'],
+
+              // Stage 1
+              ['@babel/plugin-proposal-export-default-from'],
+              ['@babel/plugin-proposal-logical-assignment-operators'],
+              ['@babel/plugin-proposal-optional-chaining', { 'loose': false }],
+              ['@babel/plugin-proposal-pipeline-operator', { 'proposal': 'minimal' }],
+              ['@babel/plugin-proposal-nullish-coalescing-operator', { 'loose': false }],
+              ['@babel/plugin-proposal-do-expressions'],
+
+              // Stage 2
+              ['@babel/plugin-proposal-decorators', { 'legacy': true }],
+              ['@babel/plugin-proposal-function-sent'],
+              ['@babel/plugin-proposal-export-namespace-from'],
+              ['@babel/plugin-proposal-numeric-separator'],
+              ['@babel/plugin-proposal-throw-expressions'],
+
+              // Stage 3
+              ['@babel/plugin-syntax-dynamic-import'],
+              ['@babel/plugin-syntax-import-meta'],
+              ['@babel/plugin-proposal-class-properties', { 'loose': false }],
+              ['@babel/plugin-proposal-json-strings'],
+
+              // runtime
+              ['@babel/plugin-transform-runtime'],
+
+              // min lodash
+              ['babel-plugin-lodash']
+            ].map((plugin) => {
+              plugin[0] = resolveDriverNpm(plugin[0]);
+              return plugin;
+            }),
             cacheDirectory: modeMap.DEV === mode // development下生效
           }
         }
       }, {
         test: /\.css$/,
-        use: [{
-          loader: mode === modeMap.DEV ? 'vue-style-loader' : MiniCssExtractPlugin.loader
-        }, {
-          loader: 'css-loader',
+        use: getStyleLoaderPresets('css')
+      }, {
+        test: /\.styl(us)?$/,
+        use: getStyleLoaderPresets('stylus').concat({
+          loader: 'stylus-loader',
           options: {
-            importLoaders: 1 // 貌似意思是import语句给下面postcss-loader处理
+            sourceMap: true
           }
-        }, {
-          loader: 'postcss-loader',
+        })
+      }, {
+        test: /\.less?$/,
+        use: getStyleLoaderPresets('less').concat({
+          loader: 'less-loader',
           options: {
-            sourceMap: true,
-            ident: 'postcss',
-            plugins: (loader) => [
-              require('postcss-import')({
-                root: projectPath
-              }),
-              require('postcss-preset-env')({
-                stage: 2, // CSS features to polyfill
-                browsers: browserslist
-              }),
-              require('cssnano')()
-            ]
+            sourceMap: true
           }
-        }, {
-          loader: 'sass-loader'
-        }, {
-          loader: 'less-loader'
-        }, {
-          loader: 'stylus-loader'
-        }]
+        })
+      }, {
+        test: /\.(sass|scss)(\?.*)?$/,
+        use: getStyleLoaderPresets('sass').concat({
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true
+          }
+        })
       }, {
         test: /\.html$/,
         loader: 'html-loader'
@@ -156,20 +240,44 @@ module.exports = function (options) {
     },
     resolve: {
       alias: {
-        '+': path.resolve(projectPath, './node_modules/ya-spa-vue/ya'),
-        '@': path.resolve(projectPath, './src'),
-        'vue$': resolveProject('node_modules/vue/dist/vue.esm.js'),
-        'ya-ui-vue': resolveProject('node_modules/ya-ui-vue') // For npm link情况，强制指向本项目下ya-ui-vue
-      }
+        '@babel': getRelativeDriverPath('node_modules/@babel'), // Force @babel resolve through driver
+        'vue$': getRelativeDriverPath('node_modules/vue/dist/vue.esm.js'),
+        'vuex$': getRelativeDriverPath('node_modules/vuex/dist/vuex.esm.js'),
+        'vue-router$': getRelativeDriverPath('node_modules/vue-router/dist/vue-router.esm.js'),
+        '+': getRelativeProjectPath('node_modules/ya-spa-vue/ya'),
+        '@': getRelativeProjectPath('src'),
+        'ya-ui-vue': getRelativeProjectPath('node_modules/ya-ui-vue') // For npm link情况，强制指向本项目下ya-ui-vue
+      },
+      extensions: ['.wasm', '.mjs', '.js', '.vue', '.json']
     },
     plugins: [
-      new VueLoaderPlugin()
+      new VueLoaderPlugin(),
+      new HtmlWebpackPlugin(merge({
+        appMountId: 'app', // Dom container id
+        mobile: true
+      }, htmlTemplate, {
+        inject: false,
+        filename: mode === modeMap.PROD ? path.resolve(distPath, 'index.html') : 'index.html', // Ouput the root of dist
+        template: path.resolve(__dirname, '../template.ejs'),
+        window: {
+          APP_DOMAIN: options.appDomain, // 部署域名
+          APP_NAME: options.appName, // 项目二级path名
+          APP_ENV: options.appEnv, // 部署环境
+          APP_VERSION: appVersion, // 项目版本号
+          STATIC_PATH: `/${options.appName}/${appVersion}/static/`, // 静态目录伺服地址，同域下
+          STATIC_CDN: `${publicPath}static/` // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
+        }
+      }))
     ].concat((() => {
       if (mode === modeMap.PROD) { // 生产环境css提取
         return [
           new MiniCssExtractPlugin({
             filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
           })
+        ];
+      } else if (mode === modeMap.DEV) {
+        return [
+          new webpack.HotModuleReplacementPlugin()
         ];
       } else {
         return [];
