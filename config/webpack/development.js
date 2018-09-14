@@ -22,6 +22,5 @@ module.exports = function (options) {
   // };
   const hotClientScriptPath = path.resolve(__dirname, '../../node_modules/webpack-hot-middleware/client?reload=true'); // hot failed auto reload
   configs.entry['main'] = [hotClientScriptPath].concat(configs.entry['main']);
-  console.log('dev-configs', configs);
   return configs;
 };

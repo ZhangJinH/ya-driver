@@ -11,6 +11,7 @@ const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const {
   npmOnBabel,
   modeMap,
@@ -38,7 +39,10 @@ module.exports = function (options) {
     outputPath,
     distPath,
     appVersion,
-    application
+    application,
+    isNeedReact,
+    isNeedDll,
+    dllPath
   } = project;
   // html template
   const htmlTemplate = {
@@ -50,10 +54,23 @@ module.exports = function (options) {
   delete htmlTemplate.templateContent;
 
   let publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`; // 项目名默认就是二级path
-  // // join cdn path
-  // if (mode === modeMap.PROD) {
-  //   publicPath = `//cdn-${options.appDomain}${appName}/${appVersion}/`;
-  // }
+  let externalScripts = [];
+  if (isNeedReact) {
+    // 按照以下地址可以在支付宝mobile客户端下走缓存 https://myjsapi.alipay.com/fe/preset-assets.html
+    externalScripts.push('https://as.alipayobjects.com/g/component/react/15.5.4/react.min.js');
+    externalScripts.push('https://as.alipayobjects.com/g/component/react/15.5.4/react-dom.min.js');
+  }
+  // 附加vue statics
+  ['vue', 'vuex', 'vue-router'].forEach((filename) => {
+    const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
+    const ext = mode === modeMap.PROD ? '.min.js' : '.js';
+    externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
+  });
+
+  if (mode === modeMap.DEV && isNeedDll) {
+    externalScripts.push(`${publicPath}dll/dll.js`);
+  }
+
   const main = path.resolve(projectPath, './src/index.js'); // Use absolute path
 
   /**
@@ -84,7 +101,7 @@ module.exports = function (options) {
     }, {
       loader: 'postcss-loader',
       options: {
-        syntax: 'sugarss',
+        parser: 'postcss-safe-parser',
         sourceMap: true,
         ident: `postcss-${preProcessor}`,
         plugins: (loader) => [
@@ -174,10 +191,10 @@ module.exports = function (options) {
               ['@babel/plugin-proposal-json-strings'],
 
               // runtime
-              ['@babel/plugin-transform-runtime'],
+              ['@babel/plugin-transform-runtime']
 
-              // min lodash
-              ['babel-plugin-lodash']
+              // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
+              // ['babel-plugin-lodash']
             ].map((plugin) => {
               plugin[0] = resolveDriverNpm(plugin[0]);
               return plugin;
@@ -250,14 +267,25 @@ module.exports = function (options) {
       },
       extensions: ['.wasm', '.mjs', '.js', '.vue', '.json']
     },
+    externals: {
+      react: 'React',
+      'react-dom': 'ReactDOM',
+      'vue': 'Vue',
+      'vuex': 'Vuex',
+      'vue-router': 'VueRouter'
+    },
     plugins: [
+      new webpack.ContextReplacementPlugin(
+        /moment[\/\\]locale$/, // eslint-disable-line
+        /zh-cn/
+      ),
       new VueLoaderPlugin(),
       new HtmlWebpackPlugin(merge({
         appMountId: 'app', // Dom container id
         mobile: true
       }, htmlTemplate, {
         inject: false,
-        filename: mode === modeMap.PROD ? path.resolve(distPath, 'index.html') : 'index.html', // Ouput the root of dist
+        filename: mode === modeMap.DEV ? 'index.html' : path.resolve(distPath, 'index.html'), // Ouput the root of dist
         template: path.resolve(__dirname, '../template.ejs'),
         window: {
           APP_DOMAIN: options.appDomain, // 部署域名
@@ -266,19 +294,31 @@ module.exports = function (options) {
           APP_VERSION: appVersion, // 项目版本号
           STATIC_PATH: `/${options.appName}/${appVersion}/static/`, // 静态目录伺服地址，同域下
           STATIC_CDN: `${publicPath}static/` // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
-        }
+        },
+        scripts: externalScripts
       }))
     ].concat((() => {
       if (mode === modeMap.PROD) { // 生产环境css提取
-        return [
+        let plugins = [
           new MiniCssExtractPlugin({
             filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
           })
         ];
+        if (options.appEnv === 'local') {
+          plugins.push(new BundleAnalyzerPlugin()); // Local test
+        }
+        return plugins;
       } else if (mode === modeMap.DEV) {
-        return [
+        let plugins = [
           new webpack.HotModuleReplacementPlugin()
         ];
+        if (isNeedDll) {
+          plugins.push(new webpack.DllReferencePlugin({
+            context: projectPath, // !important
+            manifest: path.resolve(dllPath, './dll-manifest.json')
+          }));
+        }
+        return plugins;
       } else {
         return [];
       }
