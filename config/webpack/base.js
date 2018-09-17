@@ -12,6 +12,8 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const ParseAtFlagPlugin = require('./plugins/webpack-parse-at-flag');
+const RemoveStrictFlagPlugin = require('./plugins/webpack-remove-strict-flag');
 const {
   npmOnBabel,
   modeMap,
@@ -30,7 +32,8 @@ const getRelativeDriverPath = (rp) => {
 module.exports = function (options) {
   const {
     projectPath,
-    mode
+    mode,
+    compat // 兼容模式
   } = options;
 
   const context = path.resolve(__dirname, '../../'); // context指向工具root path
@@ -133,6 +136,18 @@ module.exports = function (options) {
     devtool: 'source-map', // chrome devtool更友好
     module: {
       rules: [{
+        test: /\.(js|vue)$/,
+        loader: 'eslint-loader',
+        enforce: 'pre',
+        include: [
+          getRelativeProjectPath('src')
+        ],
+        options: {
+          configFile: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintrc'),
+          ignorePath: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintignore'),
+          formatter: require('eslint-friendly-formatter')
+        }
+      }, {
         test: /\.vue$/,
         loader: 'vue-loader'
       }, {
@@ -144,7 +159,7 @@ module.exports = function (options) {
           } else {
             // node_modules目录下除了vars.js下npmOnbabel定义开头的包，其它都不走babel转义
             if (npmOnBabel.some((pkgPrefix) => {
-              if (src.search(`node_modules/${pkgPrefix}-`) >= 0) {
+              if (src.search(`node_modules/${pkgPrefix}`) >= 0) {
                 return true;
               }
             })) {
@@ -160,7 +175,8 @@ module.exports = function (options) {
             presets: [['@babel/preset-env', {
               modules: false, // Leave for webpack
               targets: browserslist,
-              useBuiltIns: 'usage' // Just for used polyfill
+              useBuiltIns: 'usage' // entry == Replace @babel/polyfill with needed polyfills https://github.com/zloirock/core-js
+              // usage == adds at the top of each file imports of polyfills for features used in this file. In this case, feature detection is not perfect. Also, import of polyfills not at the top of your entry point can cause problems.
             }], ['@babel/preset-react'], ['@babel/preset-flow']].map((preset) => {
               preset[0] = resolveDriverNpm(preset[0]);
               return preset;
@@ -258,10 +274,12 @@ module.exports = function (options) {
     resolve: {
       alias: {
         '@babel': getRelativeDriverPath('node_modules/@babel'), // Force @babel resolve through driver
+        'core-js': getRelativeDriverPath('node_modules/core-js'),
+        'regenerator-runtime': getRelativeDriverPath('node_modules/regenerator-runtime'),
         'vue$': getRelativeDriverPath('node_modules/vue/dist/vue.esm.js'),
         'vuex$': getRelativeDriverPath('node_modules/vuex/dist/vuex.esm.js'),
         'vue-router$': getRelativeDriverPath('node_modules/vue-router/dist/vue-router.esm.js'),
-        '+': getRelativeProjectPath('node_modules/ya-spa-vue/ya'),
+        '+': getRelativeProjectPath('node_modules/ya-turbine/src/packages/generic'),
         '@': getRelativeProjectPath('src'),
         'ya-ui-vue': getRelativeProjectPath('node_modules/ya-ui-vue') // For npm link情况，强制指向本项目下ya-ui-vue
       },
@@ -307,10 +325,14 @@ module.exports = function (options) {
         if (options.appEnv === 'local') {
           plugins.push(new BundleAnalyzerPlugin()); // Local test
         }
+        plugins = plugins.concat([
+          new ParseAtFlagPlugin(),
+          new RemoveStrictFlagPlugin()
+        ]);
         return plugins;
       } else if (mode === modeMap.DEV) {
         let plugins = [
-          new webpack.HotModuleReplacementPlugin()
+          new webpack.HotModuleReplacementPlugin() // Hot replace
         ];
         if (isNeedDll) {
           plugins.push(new webpack.DllReferencePlugin({
@@ -318,9 +340,16 @@ module.exports = function (options) {
             manifest: path.resolve(dllPath, './dll-manifest.json')
           }));
         }
+        plugins = plugins.concat([
+          new ParseAtFlagPlugin()
+        ]);
+        if (compat) { // 兼容模式去掉 strict flag
+          plugins.push(new RemoveStrictFlagPlugin());
+        }
         return plugins;
       } else {
-        return [];
+        return [
+        ];
       }
     })())
   };

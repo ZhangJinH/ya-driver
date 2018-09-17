@@ -6,10 +6,10 @@ module.exports = {
   registry: 'https://registry.npm.taobao.org',
   templateUri: 'q13/ya-template-vue', // template github url
   npmOnBabel: [ // node_modules中走babel转义的包名前缀
-    'ipos',
-    'air',
-    'kbpos',
-    'ya-spa'
+    'ipos-',
+    'air-',
+    'kbpos-',
+    'ya-turbine'
   ],
   modeMap: { // Support mode list
     DEV: 'development',
