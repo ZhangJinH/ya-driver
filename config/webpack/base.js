@@ -143,6 +143,7 @@ module.exports = function (options) {
           getRelativeProjectPath('src')
         ],
         options: {
+          useEslintrc: false, // 只遵循configFile指定的规则
           configFile: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintrc'),
           ignorePath: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintignore'),
           formatter: require('eslint-friendly-formatter')
