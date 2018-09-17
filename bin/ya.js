@@ -21,6 +21,8 @@ program
   .command('serve [project-name]')
   .description('serve project in development mode with zero config.')
   .option('-P, --port [value]', 'Server port') // Server port
+  .option('-R, --mock-port [value]', 'Mock port') // Mock port
+  .option('-M, --mock', 'Setup mock server') // with the mock server setup
   .option('-C, --compat', 'Running on loose mode(remove strict flag)') // 兼容模式
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);

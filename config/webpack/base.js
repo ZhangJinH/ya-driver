@@ -3,7 +3,6 @@
  */
 const path = require('path');
 const fsExtra = require('fs-extra');
-const fs = require('fs');
 const {
   merge
 } = require('lodash');
@@ -14,6 +13,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const ParseAtFlagPlugin = require('./plugins/webpack-parse-at-flag');
 const RemoveStrictFlagPlugin = require('./plugins/webpack-remove-strict-flag');
+const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin'); // import path大小写敏感
 const {
   npmOnBabel,
   modeMap,
@@ -316,8 +316,9 @@ module.exports = function (options) {
         scripts: externalScripts
       }))
     ].concat((() => {
+      let plugins = [];
       if (mode === modeMap.PROD) { // 生产环境css提取
-        let plugins = [
+        plugins = [
           new MiniCssExtractPlugin({
             filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
           })
@@ -326,12 +327,10 @@ module.exports = function (options) {
           plugins.push(new BundleAnalyzerPlugin()); // Local test
         }
         plugins = plugins.concat([
-          new ParseAtFlagPlugin(),
           new RemoveStrictFlagPlugin()
         ]);
-        return plugins;
       } else if (mode === modeMap.DEV) {
-        let plugins = [
+        plugins = [
           new webpack.HotModuleReplacementPlugin() // Hot replace
         ];
         if (isNeedDll) {
@@ -340,17 +339,18 @@ module.exports = function (options) {
             manifest: path.resolve(dllPath, './dll-manifest.json')
           }));
         }
-        plugins = plugins.concat([
-          new ParseAtFlagPlugin()
-        ]);
         if (compat) { // 兼容模式去掉 strict flag
           plugins.push(new RemoveStrictFlagPlugin());
         }
-        return plugins;
       } else {
-        return [
-        ];
+        plugins = [];
       }
+      // Common
+      plugins = plugins.concat([
+        new ParseAtFlagPlugin(),
+        new CaseSensitivePathsPlugin()
+      ]);
+      return plugins;
     })())
   };
 };
