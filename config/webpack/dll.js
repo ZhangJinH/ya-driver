@@ -26,8 +26,7 @@ const defaultDlls = [
   '@antv/g',
   '@antv/g6',
   '@antv/data-set',
-  '@antv/hierarchy',
-  'ya-ui-vue'
+  '@antv/hierarchy'
 ];
 
 module.exports = function (options) {
@@ -60,7 +59,10 @@ module.exports = function (options) {
     devtool: 'source-map', // chrome devtool更友好
     externals: {
       'react': 'React',
-      'react-dom': 'ReactDOM'
+      'react-dom': 'ReactDOM',
+      'vue': 'Vue',
+      'vuex': 'Vuex',
+      'vue-router': 'VueRouter'
     },
     plugins: [
       new webpack.DllPlugin({

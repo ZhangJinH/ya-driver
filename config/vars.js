@@ -2,6 +2,7 @@
  * Preset variables
  */
 const defaultMockServerPort = 3001;
+const localhost = '127.0.0.1';
 module.exports = {
   // Default npm registry
   registry: 'https://registry.npm.taobao.org',
@@ -24,11 +25,12 @@ module.exports = {
   defaultMockServerPort, // Default mock port
   proxyTable: { // 自行配置在此处
     '/mock': {
-      target: `http://localhost:${defaultMockServerPort}`,
+      target: `http://${localhost}:${defaultMockServerPort}`,
       pathRewrite: {
         '^/mock': '/'
       },
       changeOrigin: true
     }
-  }
+  },
+  localhost // use 127.0.0.1 serve local server
 };

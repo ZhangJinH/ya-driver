@@ -17,7 +17,8 @@ module.exports = function (options) {
     optimization: {
       runtimeChunk: 'single',
       splitChunks: {
-        chunks: 'all'
+        chunks: 'all',
+        maxAsyncRequests: Infinity
       }
     }
   };

@@ -3,6 +3,7 @@
  */
 const path = require('path');
 const fsExtra = require('fs-extra');
+const fs = require('fs');
 const {
   merge
 } = require('lodash');
@@ -20,6 +21,9 @@ const {
   browserslist,
   filenameCommonPrefix
 } = require('../vars');
+const {
+  log
+} = require('../../utils/log');
 const Project = require('../../lib/project');
 // Resolve self node_modules path
 const resolveDriverNpm = (name) => {
@@ -45,7 +49,8 @@ module.exports = function (options) {
     application,
     isNeedReact,
     isNeedDll,
-    dllPath
+    dllPath,
+    eslintConfigs
   } = project;
   // html template
   const htmlTemplate = {
@@ -120,6 +125,26 @@ module.exports = function (options) {
       }
     }];
   };
+
+  /**
+   * 获取预处理style loader
+   * @param {String} preProcessor - style pre-processor name
+   */
+  const getStyleResourcesLoader = (preProcessor) => {
+    let loaders = [];
+    const ext = preProcessor === 'stylus' ? 'styl' : preProcessor;
+    const presetStyleFilePath = path.resolve(projectPath, `src/app/preset.${ext}`);
+    if (fs.existsSync(presetStyleFilePath)) {
+      loaders.push({
+        loader: 'sass-resources-loader',
+        options: {
+          resources: presetStyleFilePath
+        }
+      });
+      log(`${presetStyleFilePath} load before any valid style processor`);
+    }
+    return loaders;
+  };
   // Return configs
   return {
     mode,
@@ -133,24 +158,33 @@ module.exports = function (options) {
       chunkFilename: `${filenameCommonPrefix}/js/[name].js?v=[hash]`,
       publicPath
     },
-    devtool: 'source-map', // chrome devtool更友好
+    devtool: mode === modeMap.DEV ? 'eval-source-map' : 'source-map', // chrome devtool更友好
     module: {
       rules: [{
         test: /\.(js|vue)$/,
-        loader: 'eslint-loader',
-        enforce: 'pre',
         include: [
           getRelativeProjectPath('src')
         ],
-        options: {
-          useEslintrc: false, // 只遵循configFile指定的规则
-          configFile: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintrc'),
-          ignorePath: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintignore'),
-          formatter: require('eslint-friendly-formatter')
-        }
+        enforce: 'pre',
+        use: [{
+          loader: 'thread-loader' // 多核build支持
+        }, {
+          loader: 'eslint-loader',
+          options: {
+            useEslintrc: false, // 只遵循configFile指定的规则
+            configFile: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintrc'),
+            ignorePath: getRelativeDriverPath('config/webpack/loaders/eslint/.eslintignore'),
+            formatter: require('eslint-friendly-formatter'),
+            ...eslintConfigs
+          }
+        }]
       }, {
         test: /\.vue$/,
-        loader: 'vue-loader'
+        use: [{
+          loader: 'thread-loader' // 多核build支持
+        }, {
+          loader: 'vue-loader'
+        }]
       }, {
         test: /\.js$/,
         include: function (src) {
@@ -161,6 +195,9 @@ module.exports = function (options) {
             // node_modules目录下除了vars.js下npmOnbabel定义开头的包，其它都不走babel转义
             if (npmOnBabel.some((pkgPrefix) => {
               if (src.search(`node_modules/${pkgPrefix}`) >= 0) {
+                if (src.search('element-ui') >= 0) {
+                  throw new Event('error');
+                }
                 return true;
               }
             })) {
@@ -170,9 +207,12 @@ module.exports = function (options) {
             }
           }
         },
-        use: {
+        use: [{
+          loader: 'thread-loader' // 多核build支持
+        }, {
           loader: 'babel-loader',
           options: {
+            sourceType: 'unambiguous', // !important，缺失设置会导致失败
             presets: [['@babel/preset-env', {
               modules: false, // Leave for webpack
               targets: browserslist,
@@ -208,20 +248,20 @@ module.exports = function (options) {
               ['@babel/plugin-proposal-json-strings'],
 
               // runtime
-              ['@babel/plugin-transform-runtime']
+              ['@babel/plugin-transform-runtime'],
 
               // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
-              // ['babel-plugin-lodash']
+              ['babel-plugin-lodash']
             ].map((plugin) => {
               plugin[0] = resolveDriverNpm(plugin[0]);
               return plugin;
             }),
             cacheDirectory: modeMap.DEV === mode // development下生效
           }
-        }
+        }]
       }, {
         test: /\.css$/,
-        use: getStyleLoaderPresets('css')
+        use: getStyleLoaderPresets('css').concat(getStyleResourcesLoader('css'))
       }, {
         test: /\.styl(us)?$/,
         use: getStyleLoaderPresets('stylus').concat({
@@ -229,7 +269,7 @@ module.exports = function (options) {
           options: {
             sourceMap: true
           }
-        })
+        }).concat(getStyleResourcesLoader('stylus'))
       }, {
         test: /\.less?$/,
         use: getStyleLoaderPresets('less').concat({
@@ -237,7 +277,7 @@ module.exports = function (options) {
           options: {
             sourceMap: true
           }
-        })
+        }).concat(getStyleResourcesLoader('less'))
       }, {
         test: /\.(sass|scss)(\?.*)?$/,
         use: getStyleLoaderPresets('sass').concat({
@@ -245,7 +285,7 @@ module.exports = function (options) {
           options: {
             sourceMap: true
           }
-        })
+        }).concat(getStyleResourcesLoader('sass'))
       }, {
         test: /\.html$/,
         loader: 'html-loader'
