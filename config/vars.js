@@ -32,5 +32,6 @@ module.exports = {
       changeOrigin: true
     }
   },
-  localhost // use 127.0.0.1 serve local server
+  localhost, // use 127.0.0.1 serve local server
+  defaultTemplateName: 'ya-template-vue' // 默认模板名
 };

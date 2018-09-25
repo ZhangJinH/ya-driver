@@ -24,6 +24,9 @@ const {
 const {
   log
 } = require('../../utils/log');
+const {
+  ipcEnabled
+} = require('../../utils/helper');
 const Project = require('../../lib/project');
 // Resolve self node_modules path
 const resolveDriverNpm = (name) => {
@@ -167,8 +170,6 @@ module.exports = function (options) {
         ],
         enforce: 'pre',
         use: [{
-          loader: 'thread-loader' // 多核build支持
-        }, {
           loader: 'eslint-loader',
           options: {
             useEslintrc: false, // 只遵循configFile指定的规则
@@ -365,7 +366,9 @@ module.exports = function (options) {
           })
         ];
         if (options.appEnv === 'local') {
-          plugins.push(new BundleAnalyzerPlugin()); // Local test
+          plugins.push(new BundleAnalyzerPlugin({
+            openAnalyzer: !ipcEnabled // ya-gui下单独处理analyzer展示
+          })); // Local test
         }
         plugins = plugins.concat([
           new RemoveStrictFlagPlugin()
