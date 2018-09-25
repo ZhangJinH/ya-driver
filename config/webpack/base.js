@@ -55,6 +55,7 @@ module.exports = function (options) {
     dllPath,
     eslintConfigs
   } = project;
+  let publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`; // 项目名默认就是二级path
   // html template
   const htmlTemplate = {
     ...application.template,
@@ -63,8 +64,15 @@ module.exports = function (options) {
   // Delete template and templateContent, can't custom
   delete htmlTemplate.template;
   delete htmlTemplate.templateContent;
+  if (htmlTemplate.scripts) {
+    htmlTemplate.scripts = htmlTemplate.scripts.map((item) => {
+      if (item.slice(0, 2) === '@/') { // 以@开头的地址自动替换为资源目录地址
+        return `${publicPath}${item.slice(2)}`;
+      }
+      return item;
+    });
+  }
 
-  let publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`; // 项目名默认就是二级path
   let externalScripts = [];
   if (isNeedReact) {
     // 按照以下地址可以在支付宝mobile客户端下走缓存 https://myjsapi.alipay.com/fe/preset-assets.html
@@ -355,7 +363,7 @@ module.exports = function (options) {
           STATIC_PATH: `/${options.appName}/${appVersion}/static/`, // 静态目录伺服地址，同域下
           STATIC_CDN: `${publicPath}static/` // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
         },
-        scripts: externalScripts
+        scripts: (htmlTemplate.scripts || []).concat(externalScripts)
       }))
     ].concat((() => {
       let plugins = [];

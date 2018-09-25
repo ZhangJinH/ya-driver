@@ -7,7 +7,7 @@
     "ya": "bin/ya.js"
   },
   "scripts": {
-    "vue": "vue create hello-world"
+    "test": ""
   },
   "repository": {
     "type": "git",
