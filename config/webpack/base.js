@@ -64,14 +64,16 @@ module.exports = function (options) {
   // Delete template and templateContent, can't custom
   delete htmlTemplate.template;
   delete htmlTemplate.templateContent;
-  if (htmlTemplate.scripts) {
-    htmlTemplate.scripts = htmlTemplate.scripts.map((item) => {
-      if (item.slice(0, 2) === '@/') { // 以@开头的地址自动替换为资源目录地址
-        return `${publicPath}${item.slice(2)}`;
-      }
-      return item;
-    });
-  }
+  ['scripts', 'links'].forEach((field) => {
+    if (htmlTemplate[field]) {
+      htmlTemplate[field] = htmlTemplate[field].map((item) => {
+        if (item.slice(0, 2) === '@/') { // 以@开头的地址自动替换为资源目录地址
+          return `${publicPath}${item.slice(2)}`;
+        }
+        return item;
+      });
+    }
+  });
 
   let externalScripts = [];
   if (isNeedReact) {

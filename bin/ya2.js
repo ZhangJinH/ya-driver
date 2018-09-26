@@ -11,7 +11,7 @@ program
 
 program
   .command('create <project-name>')
-  .description('create a new project powered by ya-driver.')
+  .description('Create a new project powered by ya-driver.')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);
     require('../lib/create')(options);
@@ -19,7 +19,7 @@ program
 
 program
   .command('serve [project-name]')
-  .description('serve project in development mode with zero config.')
+  .description('Serve project in development mode with zero config.')
   .option('-P, --port [value]', 'Server port') // Server port
   .option('-R, --mock-port [value]', 'Mock port') // Mock port
   .option('-M, --mock', 'Setup mock server') // with the mock server setup
@@ -31,7 +31,7 @@ program
 
 program
   .command('build [project-name]')
-  .description('build project in production mode with zero config')
+  .description('Build project in production mode with zero config')
   .option('-K, --sdk', 'Output the sdk version') // 输出sdk版本
   .option('-D, --app-domain <value>', 'The serve app dmain')
   .option('-C, --cdn-domain [value]', 'The serve app cdn dmain')
