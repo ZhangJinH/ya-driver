@@ -25,11 +25,11 @@ module.exports = {
       name: 'git',
       version: '--version',
       check
-    }, {
+    } /*, {
       name: 'python',
       version: '--version',
       check
-    }, {
+    }*/, {
       name: 'yarn|npm',
       version: '-v|-v',
       check: (name, versionArg) => {

@@ -12,6 +12,7 @@ program
 program
   .command('create <project-name>')
   .description('Create a new project powered by ya-driver.')
+  .option('-F, --force', 'Force overwrite target directory')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);
     require('../lib/create')(options);
