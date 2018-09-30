@@ -25,13 +25,21 @@ const {
   log
 } = require('../../utils/log');
 const {
-  ipcEnabled
+  ipcEnabled,
+  resolveDriverNpm
 } = require('../../utils/helper');
 const Project = require('../../lib/project');
+
+// const rootPath = path.resolve(__dirname, '../../');
 // Resolve self node_modules path
-const resolveDriverNpm = (name) => {
-  return require.resolve(`../../node_modules/${name}`);
-};
+// const resolveDriverNpm = (name) => {
+//   return require.resolve(name, {
+//     paths: [
+//       rootPath
+//     ]
+//   });
+//   // return require.resolve(`../../node_modules/${name}`);
+// };
 const getRelativeDriverPath = (rp) => {
   return path.resolve(__dirname, `../../${rp}`);
 };
@@ -53,7 +61,8 @@ module.exports = function (options) {
     isNeedReact,
     isNeedDll,
     dllPath,
-    eslintConfigs
+    eslintConfigs,
+    resolveProjectNpm
   } = project;
   let publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`; // 项目名默认就是二级path
   // html template
@@ -83,7 +92,8 @@ module.exports = function (options) {
   }
   // 附加vue statics
   ['vue', 'vuex', 'vue-router'].forEach((filename) => {
-    const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
+    // const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
+    const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
     const ext = mode === modeMap.PROD ? '.min.js' : '.js';
     externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
   });
@@ -101,6 +111,18 @@ module.exports = function (options) {
   const getRelativeProjectPath = (rp) => {
     return path.resolve(projectPath, rp);
   };
+
+  /**
+   * 检索出npm package地址
+   * @param {String} name - npm name
+   */
+  // const resolveProjectNpm = (name) => {
+  //   return require.resolve(name, {
+  //     paths: [
+  //       projectPath
+  //     ]
+  //   });
+  // };
 
   /**
    * Get the presets style processor
@@ -264,7 +286,9 @@ module.exports = function (options) {
               // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
               ['babel-plugin-lodash']
             ].map((plugin) => {
-              plugin[0] = resolveDriverNpm(plugin[0]);
+              plugin[0] = resolveDriverNpm(plugin[0], {
+                builtIn: true
+              });
               return plugin;
             }),
             cacheDirectory: modeMap.DEV === mode // development下生效
@@ -325,15 +349,32 @@ module.exports = function (options) {
     },
     resolve: {
       alias: {
-        '@babel': getRelativeDriverPath('node_modules/@babel'), // Force @babel resolve through driver
-        'core-js': getRelativeDriverPath('node_modules/core-js'),
-        'regenerator-runtime': getRelativeDriverPath('node_modules/regenerator-runtime'),
-        'vue$': getRelativeDriverPath('node_modules/vue/dist/vue.esm.js'),
-        'vuex$': getRelativeDriverPath('node_modules/vuex/dist/vuex.esm.js'),
-        'vue-router$': getRelativeDriverPath('node_modules/vue-router/dist/vue-router.esm.js'),
-        '+': getRelativeProjectPath('node_modules/ya-turbine/src/packages/generic'),
+        // '@babel': getRelativeDriverPath('node_modules/@babel'), // Force @babel resolve through driver
+        '@babel': resolveDriverNpm('@babel', {
+          defaultReturn: true
+        }), // Force @babel resolve through driver
+        'core-js': resolveDriverNpm('core-js', {
+          defaultReturn: true
+        }),
+        'regenerator-runtime': resolveDriverNpm('regenerator-runtime', {
+          defaultReturn: true
+        }),
+        'vue$': resolveDriverNpm('vue/dist/vue.esm.js', {
+          defaultReturn: true
+        }),
+        'vuex$': resolveDriverNpm('vuex/dist/vuex.esm.js', {
+          defaultReturn: true
+        }),
+        'vue-router$': resolveDriverNpm('vue-router/dist/vue-router.esm.js', {
+          defaultReturn: true
+        }),
+        '+': resolveProjectNpm('ya-turbine/src/packages/generic', {
+          defaultReturn: true
+        }),
         '@': getRelativeProjectPath('src'),
-        'ya-ui-vue': getRelativeProjectPath('node_modules/ya-ui-vue') // For npm link情况，强制指向本项目下ya-ui-vue
+        'ya-ui-vue': resolveProjectNpm('ya-ui-vue', {
+          defaultReturn: true
+        }) // For npm link情况，强制指向本项目下ya-ui-vue
       },
       extensions: ['.wasm', '.mjs', '.js', '.vue', '.json']
     },

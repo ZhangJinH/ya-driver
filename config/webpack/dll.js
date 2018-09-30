@@ -35,13 +35,15 @@ module.exports = function (options) {
   } = options;
   const project = new Project(projectPath); // 放置project相关信息
   const {
-    dllPath
+    dllPath,
+    resolveProjectNpm
   } = project;
   fsExtra.ensureDirSync(dllPath); // DLL目录，开发阶段存储打包dll文件
   fsExtra.emptyDirSync(dllPath);
   // Find all project deps
   const dll = defaultDlls.filter((name) => {
-    return fs.existsSync(path.resolve(projectPath, `./node_modules/${name}`));
+    // return fs.existsSync(path.resolve(projectPath, `./node_modules/${name}`));
+    return fs.existsSync(resolveProjectNpm(name));
   });
   return {
     mode: modeMap.DEV,

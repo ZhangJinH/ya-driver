@@ -1,12 +1,15 @@
 /**
  * Mode === development webpack configs
  */
-const path = require('path');
+// const path = require('path');
 const getBaseConfig = require('./base');
 // const merge = require('webpack-merge');
 const {
   modeMap
 } = require('../vars');
+const {
+  resolveDriverNpm
+} = require('../../utils/helper');
 
 module.exports = function (options) {
   const baseConfig = getBaseConfig({
@@ -20,7 +23,10 @@ module.exports = function (options) {
   // configs.devServer = {
   //   hot: true
   // };
-  const hotClientScriptPath = path.resolve(__dirname, '../../node_modules/webpack-hot-middleware/client?reload=true'); // hot failed auto reload
-  configs.entry['main'] = [hotClientScriptPath].concat(configs.entry['main']);
+  // const hotClientScriptPath = path.resolve(__dirname, '../../node_modules/webpack-hot-middleware/client?reload=true'); // hot failed auto reload
+  const hotClientScriptPath = resolveDriverNpm('webpack-hot-middleware/client', {
+    extensions: ['js']
+  }); // hot failed auto reload
+  configs.entry['main'] = [`${hotClientScriptPath}?reload=true`].concat(configs.entry['main']);
   return configs;
 };
