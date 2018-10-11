@@ -4,7 +4,7 @@
 const getBaseConfig = require('./base');
 // const merge = require('webpack-merge');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+// const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const {
   modeMap
 } = require('../vars');
@@ -22,8 +22,8 @@ module.exports = function (options) {
           cache: true,
           parallel: true,
           sourceMap: true // set to true if you want JS source maps
-        }),
-        new OptimizeCSSAssetsPlugin({})
+        })
+        // new OptimizeCSSAssetsPlugin({})
       ],
       runtimeChunk: 'single',
       splitChunks: {
