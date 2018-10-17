@@ -51,6 +51,14 @@ program
     require('../lib/acc')(options);
   });
 
+program
+  .command('deps [project-name]')
+  .description('Install local dependencies powered by yarn add npm fallback')
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd);
+    require('../lib/deps')(options);
+  });
+
 // add some useful info on help
 program.on('--help', () => {
   log();
