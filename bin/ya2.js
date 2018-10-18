@@ -32,7 +32,7 @@ program
 
 program
   .command('build [project-name]')
-  .description('Build project in production mode with zero config')
+  .description('Build project in production mode with zero config.')
   .option('-K, --sdk', 'Output the sdk version') // 输出sdk版本
   .option('-D, --app-domain <value>', 'The serve app dmain')
   .option('-C, --cdn-domain [value]', 'The serve app cdn dmain')
@@ -45,7 +45,7 @@ program
 
 program
   .command('acc [project-name]')
-  .description('Accelerate project local deploy speed')
+  .description('Accelerate project local deploy speed.')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);
     require('../lib/acc')(options);
@@ -53,10 +53,18 @@ program
 
 program
   .command('deps [project-name]')
-  .description('Install local dependencies powered by yarn add npm fallback')
+  .description('Install local dependencies powered by yarn add npm fallback.')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);
     require('../lib/deps')(options);
+  });
+
+program
+  .command('eslint [project-name]')
+  .description('Install recommend eslint scheme.')
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd);
+    require('../lib/eslint')(options);
   });
 
 // add some useful info on help
