@@ -34,15 +34,4 @@ module.exports = {
   },
   localhost, // use 127.0.0.1 serve local server
   defaultTemplateName: 'ya-template-vue' // 默认模板名
-  // eslintDeps: {
-  //   'eslint': '5.5.0',
-  //   'eslint-config-standard': '12.0.0',
-  //   'eslint-friendly-formatter': '4.0.1',
-  //   'eslint-loader': '2.1.0',
-  //   'eslint-plugin-import': '2.14.0',
-  //   'eslint-plugin-node': '7.0.1',
-  //   'eslint-plugin-promise': '4.0.0',
-  //   'eslint-plugin-standard': '4.0.0',
-  //   'eslint-plugin-vue': '4.7.1'
-  // }
 };
