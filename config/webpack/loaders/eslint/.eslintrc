@@ -25,7 +25,8 @@
     "Vue": true,
     "require": true,
     "nw": true,
-    "process": true
+    "process": true,
+    "import": true
   },
   "rules": {
     "no-new": 0, // 可以直接使用new关键字
