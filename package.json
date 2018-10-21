@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "0.1.1-alpha.1",
+  "version": "1.0.0",
   "description": "The driver support Ya GUI or Ya cli. docker image",
   "main": "index.js",
   "bin": {
@@ -63,12 +63,12 @@
     "eslint": "5.5.0",
     "eslint-config-standard": "12.0.0",
     "eslint-friendly-formatter": "4.0.1",
-    "eslint-loader": "2.1.1",
+    "eslint-loader": "2.1.0",
     "eslint-plugin-import": "2.14.0",
     "eslint-plugin-node": "7.0.1",
     "eslint-plugin-promise": "4.0.0",
     "eslint-plugin-standard": "4.0.0",
-    "eslint-plugin-vue": "^5.0.0-beta.3",
+    "eslint-plugin-vue": "5.0.0-beta.3",
     "execa": "1.0.0",
     "express": "^4.16.3",
     "figlet": "1.2.0",
@@ -83,7 +83,7 @@
     "lodash": "4.17.11",
     "mini-css-extract-plugin": "0.4.2",
     "mockjs": "1.0.1-beta3",
-    "node-sass": "^4.9.3",
+    "node-sass": "4.9.3",
     "opn": "5.3.0",
     "optimize-css-assets-webpack-plugin": "5.0.1",
     "ora": "3.0.0",
@@ -114,7 +114,7 @@
     "webpack-dev-middleware": "3.3.0",
     "webpack-hot-middleware": "2.23.1",
     "webpack-merge": "4.1.4",
-    "yarn-install": "^1.0.0"
+    "yarn-install": "1.0.0"
   },
   "devDependencies": {}
 }

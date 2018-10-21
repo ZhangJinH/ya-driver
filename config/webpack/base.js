@@ -180,8 +180,20 @@ module.exports = function (options) {
     }
     return loaders;
   };
+  const {
+    webpackConfigPipe
+  } = application.build;
+  let pipe = (webpackConfig) => {
+    return webpackConfig;
+  };
+  if (webpackConfigPipe) {
+    const webpackConfigPipePath = path.resolve(projectPath, webpackConfigPipe);
+    if (fs.existsSync(webpackConfigPipePath)) {
+      pipe = require(webpackConfigPipePath);
+    }
+  }
   // Return configs
-  return {
+  return pipe({
     mode,
     context,
     entry: {
@@ -447,5 +459,5 @@ module.exports = function (options) {
       ]);
       return plugins;
     })())
-  };
+  });
 };
