@@ -31,20 +31,30 @@ const defaultDlls = [
 
 module.exports = function (options) {
   const {
-    projectPath
+    projectPath,
+    maxEffect
   } = options;
   const project = new Project(projectPath); // 放置project相关信息
   const {
     dllPath,
+    pkgJson,
     resolveProjectNpm
   } = project;
   fsExtra.ensureDirSync(dllPath); // DLL目录，开发阶段存储打包dll文件
   fsExtra.emptyDirSync(dllPath);
   // Find all project deps
-  const dll = defaultDlls.filter((name) => {
-    // return fs.existsSync(path.resolve(projectPath, `./node_modules/${name}`));
-    return fs.existsSync(resolveProjectNpm(name));
-  });
+  let dll = [];
+  if (maxEffect) {
+    const dependencies = pkgJson.dependencies;
+    dll = Object.keys(dependencies).filter((key) => {
+      return key !== 'ya-ui-vue' && key !== 'ya-turbine';
+    });
+  } else {
+    dll = defaultDlls.filter((name) => {
+      // return fs.existsSync(path.resolve(projectPath, `./node_modules/${name}`));
+      return fs.existsSync(resolveProjectNpm(name));
+    });
+  }
   return {
     mode: modeMap.DEV,
     context: projectPath,

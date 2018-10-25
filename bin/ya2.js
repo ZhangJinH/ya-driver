@@ -46,6 +46,7 @@ program
 program
   .command('acc [project-name]')
   .description('Accelerate project local deploy speed.')
+  .option('-M, --max-effect', 'Create dll file include all third dependencies')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd);
     require('../lib/acc')(options);
