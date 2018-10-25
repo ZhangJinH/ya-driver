@@ -68,6 +68,14 @@ program
     require('../lib/eslint')(options);
   });
 
+program
+  .command('test [project-name]')
+  .description('Run unit test drive by karma.')
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd);
+    require('../lib/test')(options);
+  });
+
 // add some useful info on help
 program.on('--help', () => {
   log();

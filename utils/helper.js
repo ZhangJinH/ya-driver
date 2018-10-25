@@ -8,7 +8,7 @@ module.exports = {
   processSendSilent(data) {
     return process.send && process.send(data);
   },
-  ipcEnabled() {
+  get ipcEnabled() {
     return !!process.send;
   },
   resolveDriverNpm(name, options) {

@@ -11,14 +11,31 @@ const {
 const Project = require('../../lib/project');
 
 module.exports = function (options) {
-  const baseConfig = getBaseConfig({
-    ...options,
-    mode: modeMap.PROD
-  });
   const project = new Project(options.projectPath); // 放置project相关信息
   const {
     application
   } = project;
+  // let {
+  //   appName
+  // } = project;
+
+  if (options.appEnv === 'local') { // 本地Test
+    if (!options.appDomain) {
+      options.appDomain = 'local/';
+    }
+    if (!options.cdnDomain) {
+      options.cdnDomain = '/'; // 本地测试占位
+    }
+  }
+  // appName = options.appName || appName; // 应该和project pkg.name一致
+  const baseConfig = getBaseConfig({
+    ...options,
+    cdnDomain: options.cdnDomain || `//cdn-${options.appDomain}`, // cdn 地址
+    // appDomain: options.appDomain,
+    // appName,
+    // appEnv: options.appEnv, // 环境名
+    mode: modeMap.PROD
+  });
   const {
     singleStyleFile,
     optimizeStyle

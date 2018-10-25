@@ -6,6 +6,7 @@ const fs = require('fs');
 const {
   camelCase
 } = require('lodash');
+const Project = require('../lib/project');
 
 module.exports = function (projectName, cmd) {
   const projectPath = path.isAbsolute(projectName) ? projectName : path.resolve(process.cwd(), projectName);
@@ -23,6 +24,11 @@ module.exports = function (projectName, cmd) {
       options.appDomain = options.appDomain + '/';
     }
   }
+  const project = new Project(options.projectPath); // 放置project相关信息
+  const {
+    appName
+  } = project;
+  options.appName = options.appName || appName; // 默认从package.json name中读取
   return options;
 };
 

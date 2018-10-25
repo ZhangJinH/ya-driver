@@ -26,7 +26,12 @@
     "require": true,
     "nw": true,
     "process": true,
-    "import": true
+    "import": true,
+    "describe": true,
+    "it": true,
+    "expect": true,
+    "sinon": true,
+    "assert": true
   },
   "rules": {
     "no-new": 0, // 可以直接使用new关键字

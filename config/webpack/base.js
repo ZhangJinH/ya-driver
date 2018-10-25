@@ -297,7 +297,12 @@ module.exports = function (options) {
 
               // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
               ['babel-plugin-lodash']
-            ].map((plugin) => {
+            ].concat((() => {
+              if (options.test) { // Unit test下插入coverage report
+                return [['babel-plugin-istanbul']];
+              }
+              return [];
+            })()).map((plugin) => {
               plugin[0] = resolveDriverNpm(plugin[0], {
                 builtIn: true
               });
@@ -371,6 +376,8 @@ module.exports = function (options) {
         'regenerator-runtime': resolveDriverNpm('regenerator-runtime', {
           defaultReturn: true
         }),
+        'react$': getRelativeDriverPath('deps/react/15.5.4/react.js'),
+        'react-dom$': getRelativeDriverPath('deps/react/15.5.4/react-dom.js'),
         'vue$': resolveDriverNpm('vue/dist/vue.esm.js', {
           defaultReturn: true
         }),
@@ -378,6 +385,15 @@ module.exports = function (options) {
           defaultReturn: true
         }),
         'vue-router$': resolveDriverNpm('vue-router/dist/vue-router.esm.js', {
+          defaultReturn: true
+        }),
+        '@vue/test-utils': resolveDriverNpm('@vue/test-utils', {
+          defaultReturn: true
+        }),
+        'chai': resolveDriverNpm('chai', {
+          defaultReturn: true
+        }),
+        'sinon': resolveDriverNpm('sinon', {
           defaultReturn: true
         }),
         '+': resolveProjectNpm('ya-turbine/src/packages/generic', {
