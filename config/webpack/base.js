@@ -192,6 +192,54 @@ module.exports = function (options) {
       pipe = require(webpackConfigPipePath);
     }
   }
+  const {
+    codeCoverage // Read code coverage configs
+  } = application;
+  // babel plugins
+  const babelPlugins = [
+    // Stage 0
+    ['@babel/plugin-proposal-function-bind'],
+
+    // Stage 1
+    ['@babel/plugin-proposal-export-default-from'],
+    ['@babel/plugin-proposal-logical-assignment-operators'],
+    ['@babel/plugin-proposal-optional-chaining', { 'loose': false }],
+    ['@babel/plugin-proposal-pipeline-operator', { 'proposal': 'minimal' }],
+    ['@babel/plugin-proposal-nullish-coalescing-operator', { 'loose': false }],
+    ['@babel/plugin-proposal-do-expressions'],
+
+    // Stage 2
+    ['@babel/plugin-proposal-decorators', { 'legacy': true }],
+    ['@babel/plugin-proposal-function-sent'],
+    ['@babel/plugin-proposal-export-namespace-from'],
+    ['@babel/plugin-proposal-numeric-separator'],
+    ['@babel/plugin-proposal-throw-expressions'],
+
+    // Stage 3
+    ['@babel/plugin-syntax-dynamic-import'],
+    ['@babel/plugin-syntax-import-meta'],
+    ['@babel/plugin-proposal-class-properties', { 'loose': false }],
+    ['@babel/plugin-proposal-json-strings'],
+
+    // runtime
+    ['@babel/plugin-transform-runtime'],
+
+    // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
+    ['babel-plugin-lodash']
+  ].concat((() => {
+    if (options.test) { // Unit test下插入coverage report
+      return [['babel-plugin-istanbul', {
+        exclude: codeCoverage.exclude
+      }]];
+    }
+    return [];
+  })()).map((plugin) => {
+    plugin[0] = resolveDriverNpm(plugin[0], {
+      builtIn: true
+    });
+    return plugin;
+  });
+
   // Return configs
   return pipe({
     mode,
@@ -267,48 +315,8 @@ module.exports = function (options) {
               preset[0] = resolveDriverNpm(preset[0]);
               return preset;
             }),
-            plugins: [
-              // Stage 0
-              ['@babel/plugin-proposal-function-bind'],
-
-              // Stage 1
-              ['@babel/plugin-proposal-export-default-from'],
-              ['@babel/plugin-proposal-logical-assignment-operators'],
-              ['@babel/plugin-proposal-optional-chaining', { 'loose': false }],
-              ['@babel/plugin-proposal-pipeline-operator', { 'proposal': 'minimal' }],
-              ['@babel/plugin-proposal-nullish-coalescing-operator', { 'loose': false }],
-              ['@babel/plugin-proposal-do-expressions'],
-
-              // Stage 2
-              ['@babel/plugin-proposal-decorators', { 'legacy': true }],
-              ['@babel/plugin-proposal-function-sent'],
-              ['@babel/plugin-proposal-export-namespace-from'],
-              ['@babel/plugin-proposal-numeric-separator'],
-              ['@babel/plugin-proposal-throw-expressions'],
-
-              // Stage 3
-              ['@babel/plugin-syntax-dynamic-import'],
-              ['@babel/plugin-syntax-import-meta'],
-              ['@babel/plugin-proposal-class-properties', { 'loose': false }],
-              ['@babel/plugin-proposal-json-strings'],
-
-              // runtime
-              ['@babel/plugin-transform-runtime'],
-
-              // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
-              ['babel-plugin-lodash']
-            ].concat((() => {
-              if (options.test) { // Unit test下插入coverage report
-                return [['babel-plugin-istanbul']];
-              }
-              return [];
-            })()).map((plugin) => {
-              plugin[0] = resolveDriverNpm(plugin[0], {
-                builtIn: true
-              });
-              return plugin;
-            }),
-            cacheDirectory: modeMap.DEV === mode // development下生效
+            plugins: babelPlugins
+            // cacheDirectory: modeMap.DEV === mode // development下生效，TODO:// 貌似会把babel-plugin cache ?
           }
         }]
       }, {
