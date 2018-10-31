@@ -80,7 +80,11 @@ module.exports = function (options) {
           noCompact: true
         }
       },
-      type: 'html',
+      reporters: [{
+        type: 'html'
+      }, {
+        type: 'text'
+      }],
       dir: coveragePath,
       subdir: 'report'
     }
