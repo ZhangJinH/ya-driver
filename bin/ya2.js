@@ -14,7 +14,9 @@ program
   .description('Create a new project powered by ya-driver.')
   .option('-F, --force', 'Force overwrite target directory')
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'create'
+    });
     require('../lib/create')(options);
   });
 
@@ -26,7 +28,9 @@ program
   .option('-M, --mock', 'Setup mock server') // with the mock server setup
   .option('-C, --compat', 'Running on loose mode(remove strict flag)') // 兼容模式
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'serve'
+    });
     require('../lib/serve')(options);
   });
 
@@ -39,7 +43,9 @@ program
   .option('-N, --app-name [value]', 'App name,should always the same with package.json name field')
   .option('-E, --app-env <value>', 'Deploy env name, reference http://doc.yazuosoft.com/pages/viewpage.action?pageId=3015211')
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'build'
+    });
     require('../lib/build')(options);
   });
 
@@ -48,7 +54,9 @@ program
   .description('Accelerate project local deploy speed.')
   .option('-M, --max-effect', 'Create dll file include all third dependencies')
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'acc'
+    });
     require('../lib/acc')(options);
   });
 
@@ -56,7 +64,9 @@ program
   .command('deps [project-name]')
   .description('Install local dependencies powered by yarn add npm fallback.')
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'deps'
+    });
     require('../lib/deps')(options);
   });
 
@@ -64,7 +74,9 @@ program
   .command('eslint [project-name]')
   .description('Install recommend eslint scheme.')
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'eslint'
+    });
     require('../lib/eslint')(options);
   });
 
@@ -72,7 +84,9 @@ program
   .command('test [project-name]')
   .description('Run unit test drive by karma.')
   .action((projectName, cmd) => {
-    const options = normalizeOpts(projectName, cmd);
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'test'
+    });
     require('../lib/test')(options);
   });
 

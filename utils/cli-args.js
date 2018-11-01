@@ -8,7 +8,7 @@ const {
 } = require('lodash');
 const Project = require('../lib/project');
 
-module.exports = function (projectName, cmd) {
+module.exports = function (projectName, cmd, cfg) {
   const projectPath = path.isAbsolute(projectName) ? projectName : path.resolve(process.cwd(), projectName);
   // const projectContext = path.dirname(projectPath);
   projectName = path.basename(projectPath); // normalize project name
@@ -24,11 +24,13 @@ module.exports = function (projectName, cmd) {
       options.appDomain = options.appDomain + '/';
     }
   }
-  const project = new Project(options.projectPath); // 放置project相关信息
-  const {
-    appName
-  } = project;
-  options.appName = options.appName || appName; // 默认从package.json name中读取
+  if (cfg.command !== 'create') {
+    const project = new Project(options.projectPath); // 放置project相关信息
+    const {
+      appName
+    } = project;
+    options.appName = options.appName || appName; // 默认从package.json name中读取
+  }
   return options;
 };
 
