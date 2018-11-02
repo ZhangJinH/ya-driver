@@ -47,8 +47,7 @@ const getRelativeDriverPath = (rp) => {
 module.exports = function (options) {
   const {
     projectPath,
-    mode,
-    compat // 兼容模式
+    mode
   } = options;
 
   const context = path.resolve(__dirname, '../../'); // context指向工具root path
@@ -181,7 +180,8 @@ module.exports = function (options) {
     return loaders;
   };
   const {
-    webpackConfigPipe
+    webpackConfigPipe,
+    removeStrictFlag
   } = application.build;
   let pipe = (webpackConfig) => {
     return webpackConfig;
@@ -457,9 +457,11 @@ module.exports = function (options) {
             openAnalyzer: !ipcEnabled // ya-gui下单独处理analyzer展示
           })); // Local test
         }
-        plugins = plugins.concat([
-          new RemoveStrictFlagPlugin()
-        ]);
+        if (removeStrictFlag) { // 兼容模式去掉 strict flag
+          plugins = plugins.concat([
+            new RemoveStrictFlagPlugin()
+          ]);
+        }
       } else if (mode === modeMap.DEV) {
         plugins = [
           new webpack.HotModuleReplacementPlugin() // Hot replace
@@ -470,7 +472,7 @@ module.exports = function (options) {
             manifest: path.resolve(dllPath, './dll-manifest.json')
           }));
         }
-        if (compat) { // 兼容模式去掉 strict flag
+        if (removeStrictFlag) { // 兼容模式去掉 strict flag
           plugins.push(new RemoveStrictFlagPlugin());
         }
       } else {
