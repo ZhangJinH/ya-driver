@@ -50,5 +50,23 @@ module.exports = {
       }
       return targetPath;
     }
+  },
+  /**
+   * 判定port是否被占用
+   * @param {Number} port - port
+   * @param {Function} fn - callback
+   */
+  isPortTaken(port, fn) {
+    const net = require('net');
+    const tester = net.createServer().once('error', function (err) {
+      if (err.code != 'EADDRINUSE') {
+        return fn(err);
+      }
+      fn(null, true);
+    }).once('listening', function () {
+      tester.once('close', function () {
+        fn(null, false);
+      }).close();
+    }).listen(port);
   }
 };
