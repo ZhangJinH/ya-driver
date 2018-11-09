@@ -15,6 +15,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const ParseAtFlagPlugin = require('./plugins/webpack-parse-at-flag');
 const RemoveStrictFlagPlugin = require('./plugins/webpack-remove-strict-flag');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin'); // import path大小写敏感
+const vuxLoader = require('vux-loader');
 const {
   npmOnBabel,
   modeMap,
@@ -240,8 +241,7 @@ module.exports = function (options) {
     return plugin;
   });
 
-  // Return configs
-  return pipe({
+  const webpackConfig = {
     mode,
     context,
     entry: {
@@ -485,5 +485,7 @@ module.exports = function (options) {
       ]);
       return plugins;
     })())
-  });
+  };
+  // Return configs
+  return pipe(webpackConfig);
 };
