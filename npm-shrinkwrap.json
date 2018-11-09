@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -1095,6 +1095,17 @@
       "requires": {
         "mime-types": "2.1.20",
         "negotiator": "0.6.1"
+      },
+      "dependencies": {
+        "mime-db": {
+          "version": "1.36.0"
+        },
+        "mime-types": {
+          "version": "2.1.20",
+          "requires": {
+            "mime-db": "1.36.0"
+          }
+        }
       }
     },
     "acorn": {
@@ -1423,7 +1434,6 @@
     },
     "bcrypt-pbkdf": {
       "version": "1.0.2",
-      "optional": true,
       "requires": {
         "tweetnacl": "0.14.5"
       }
@@ -2661,7 +2671,6 @@
     },
     "ecc-jsbn": {
       "version": "0.1.2",
-      "optional": true,
       "requires": {
         "jsbn": "0.1.1",
         "safer-buffer": "2.1.2"
@@ -3510,19 +3519,11 @@
       "version": "0.6.1"
     },
     "form-data": {
-      "version": "2.3.2",
+      "version": "2.3.3",
       "requires": {
         "asynckit": "0.4.0",
-        "combined-stream": "1.0.6",
-        "mime-types": "2.1.20"
-      },
-      "dependencies": {
-        "combined-stream": {
-          "version": "1.0.6",
-          "requires": {
-            "delayed-stream": "1.0.0"
-          }
-        }
+        "combined-stream": "1.0.7",
+        "mime-types": "2.1.21"
       }
     },
     "forwarded": {
@@ -3981,7 +3982,7 @@
       "requires": {
         "assert-plus": "1.0.0",
         "jsprim": "1.4.1",
-        "sshpk": "1.14.2"
+        "sshpk": "1.15.2"
       }
     },
     "https-browserify": {
@@ -4397,8 +4398,7 @@
       }
     },
     "jsbn": {
-      "version": "0.1.1",
-      "optional": true
+      "version": "0.1.1"
     },
     "jsesc": {
       "version": "0.5.0"
@@ -4908,12 +4908,12 @@
       "version": "2.3.1"
     },
     "mime-db": {
-      "version": "1.36.0"
+      "version": "1.37.0"
     },
     "mime-types": {
-      "version": "2.1.20",
+      "version": "2.1.21",
       "requires": {
-        "mime-db": "1.36.0"
+        "mime-db": "1.37.0"
       }
     },
     "mimic-fn": {
@@ -5077,7 +5077,7 @@
       "version": "0.0.7"
     },
     "nan": {
-      "version": "2.11.0"
+      "version": "2.11.1"
     },
     "nanomatch": {
       "version": "1.2.13",
@@ -5233,7 +5233,7 @@
         "lodash.mergewith": "4.6.1",
         "meow": "3.7.0",
         "mkdirp": "0.5.1",
-        "nan": "2.11.0",
+        "nan": "2.11.1",
         "node-gyp": "3.8.0",
         "npmlog": "4.1.2",
         "request": "2.87.0",
@@ -5296,13 +5296,13 @@
             "combined-stream": "1.0.7",
             "extend": "3.0.2",
             "forever-agent": "0.6.1",
-            "form-data": "2.3.2",
+            "form-data": "2.3.3",
             "har-validator": "5.0.3",
             "http-signature": "1.2.0",
             "is-typedarray": "1.0.0",
             "isstream": "0.1.2",
             "json-stringify-safe": "5.0.1",
-            "mime-types": "2.1.20",
+            "mime-types": "2.1.21",
             "oauth-sign": "0.8.2",
             "performance-now": "2.1.0",
             "qs": "6.5.2",
@@ -5334,8 +5334,13 @@
       "requires": {
         "hosted-git-info": "2.7.1",
         "is-builtin-module": "1.0.0",
-        "semver": "5.5.1",
+        "semver": "5.6.0",
         "validate-npm-package-license": "3.0.4"
+      },
+      "dependencies": {
+        "semver": {
+          "version": "5.6.0"
+        }
       }
     },
     "normalize-path": {
@@ -6950,13 +6955,13 @@
         "combined-stream": "1.0.7",
         "extend": "3.0.2",
         "forever-agent": "0.6.1",
-        "form-data": "2.3.2",
+        "form-data": "2.3.3",
         "har-validator": "5.1.0",
         "http-signature": "1.2.0",
         "is-typedarray": "1.0.0",
         "isstream": "0.1.2",
         "json-stringify-safe": "5.0.1",
-        "mime-types": "2.1.20",
+        "mime-types": "2.1.21",
         "oauth-sign": "0.9.0",
         "performance-now": "2.1.0",
         "qs": "6.5.2",
@@ -7423,24 +7428,24 @@
       "version": "0.4.0"
     },
     "spdx-correct": {
-      "version": "3.0.0",
+      "version": "3.0.2",
       "requires": {
         "spdx-expression-parse": "3.0.0",
-        "spdx-license-ids": "3.0.1"
+        "spdx-license-ids": "3.0.2"
       }
     },
     "spdx-exceptions": {
-      "version": "2.1.0"
+      "version": "2.2.0"
     },
     "spdx-expression-parse": {
       "version": "3.0.0",
       "requires": {
-        "spdx-exceptions": "2.1.0",
-        "spdx-license-ids": "3.0.1"
+        "spdx-exceptions": "2.2.0",
+        "spdx-license-ids": "3.0.2"
       }
     },
     "spdx-license-ids": {
-      "version": "3.0.1"
+      "version": "3.0.2"
     },
     "split-string": {
       "version": "3.1.0",
@@ -7467,7 +7472,7 @@
       "version": "1.0.3"
     },
     "sshpk": {
-      "version": "1.14.2",
+      "version": "1.15.2",
       "requires": {
         "asn1": "0.2.4",
         "assert-plus": "1.0.0",
@@ -7981,8 +7986,7 @@
       }
     },
     "tweetnacl": {
-      "version": "0.14.5",
-      "optional": true
+      "version": "0.14.5"
     },
     "type-check": {
       "version": "0.3.2",
@@ -7998,6 +8002,17 @@
       "requires": {
         "media-typer": "0.3.0",
         "mime-types": "2.1.20"
+      },
+      "dependencies": {
+        "mime-db": {
+          "version": "1.36.0"
+        },
+        "mime-types": {
+          "version": "2.1.20",
+          "requires": {
+            "mime-db": "1.36.0"
+          }
+        }
       }
     },
     "typedarray": {
@@ -8266,7 +8281,7 @@
     "validate-npm-package-license": {
       "version": "3.0.4",
       "requires": {
-        "spdx-correct": "3.0.0",
+        "spdx-correct": "3.0.2",
         "spdx-expression-parse": "3.0.0"
       }
     },
