@@ -5,7 +5,7 @@ htmlWebpackPlugin.options.links = htmlWebpackPlugin.options.links || [] %><%
 htmlWebpackPlugin.options.meta = htmlWebpackPlugin.options.meta || [] %><%
 htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || []
 %><!DOCTYPE html>
-<html lang="<%= htmlWebpackPlugin.options.lang %>"<% if (htmlWebpackPlugin.files.manifest) { %> manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %>>
+<html lang="<%= htmlWebpackPlugin.options.lang %>"<% if (htmlWebpackPlugin.files.manifest) { %> manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %> class="<%= htmlWebpackPlugin.options.htmlClassNames %>">
   <head>
     <meta charset="utf-8">
     <meta content="ie=edge" http-equiv="x-ua-compatible"><%
@@ -55,7 +55,7 @@ htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || []
     <%= htmlWebpackPlugin.options.headHtmlSnippet %><%
     } %>
   </head>
-  <body><%
+  <body class="<%= htmlWebpackPlugin.options.bodyClassNames %>"><%
     if (htmlWebpackPlugin.options.unsupportedBrowser) { %>
     <style>.unsupported-browser { display: none; }</style>
     <div class="unsupported-browser">
