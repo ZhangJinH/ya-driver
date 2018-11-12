@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "1.2.2",
+  "version": "1.2.1",
   "description": "The driver support Ya GUI or Ya cli. docker image",
   "main": "index.js",
   "bin": {
@@ -61,7 +61,7 @@
     "commander": "2.17.1",
     "connect-history-api-fallback": "1.5.0",
     "css-loader": "1.0.0",
-    "cssnano": "^4.1.7",
+    "cssnano": "4.1.0",
     "download-git-repo": "1.1.0",
     "eslint": "5.5.0",
     "eslint-config-standard": "12.0.0",
