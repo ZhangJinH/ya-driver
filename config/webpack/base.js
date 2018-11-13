@@ -72,6 +72,12 @@ module.exports = function (options) {
   // Delete template and templateContent, can't custom
   delete htmlTemplate.template;
   delete htmlTemplate.templateContent;
+  const {
+    webpackConfigPipe,
+    removeStrictFlag,
+    optimizeVue // vue相关合并成一个文件
+  } = application.build;
+  // 处理资源引用
   ['scripts', 'links'].forEach((field) => {
     if (htmlTemplate[field]) {
       htmlTemplate[field] = htmlTemplate[field].map((item) => {
@@ -90,12 +96,20 @@ module.exports = function (options) {
     externalScripts.push('https://as.alipayobjects.com/g/component/react/15.5.4/react-dom.min.js');
   }
   // 附加vue statics
-  ['vue', 'vuex', 'vue-router'].forEach((filename) => {
-    // const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
-    const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
-    const ext = mode === modeMap.PROD ? '.min.js' : '.js';
-    externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
-  });
+  if (optimizeVue) {
+    ['vue'].forEach((filename) => {
+      const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
+      const ext = mode === modeMap.PROD ? '.min.js' : '.js';
+      externalScripts.push(`${publicPath}static/vue/${filename}-sets${ext}?v=${pkgJson.version}`);
+    });
+  } else {
+    ['vue', 'vuex', 'vue-router'].forEach((filename) => {
+      // const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
+      const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
+      const ext = mode === modeMap.PROD ? '.min.js' : '.js';
+      externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
+    });
+  }
 
   if (mode === modeMap.DEV && isNeedDll) {
     externalScripts.push(`${publicPath}dll/dll.js`);
@@ -179,10 +193,6 @@ module.exports = function (options) {
     }
     return loaders;
   };
-  const {
-    webpackConfigPipe,
-    removeStrictFlag
-  } = application.build;
   let pipe = (webpackConfig) => {
     return webpackConfig;
   };
