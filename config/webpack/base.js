@@ -76,7 +76,7 @@ module.exports = function (options) {
   if (cdnDisabled) {
     publicPath = `${options.appDomain}${options.appName}/${appVersion}/`;
     if (publicPath.slice(0, 1) !== '/') {
-      publicPath = '/' + publicPath;
+      publicPath = '//' + publicPath;
     }
   } else {
     publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`;
