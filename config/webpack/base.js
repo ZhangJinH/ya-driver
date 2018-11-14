@@ -19,7 +19,8 @@ const {
   npmOnBabel,
   modeMap,
   browserslist,
-  filenameCommonPrefix
+  filenameCommonPrefix,
+  reactVersion
 } = require('../vars');
 const {
   log
@@ -63,7 +64,23 @@ module.exports = function (options) {
     eslintConfigs,
     resolveProjectNpm
   } = project;
-  let publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`; // 项目名默认就是二级path
+  const {
+    webpackConfigPipe,
+    removeStrictFlag,
+    optimizeVue, // vue相关合并成一个文件
+    optimizeReact, // react相关合并成一个文件
+    manualLoadReact, // 是否由项目本身加载react库文件
+    cdnDisabled // 是否走cdn，默认走cdn
+  } = application.build;
+  let publicPath = ''; // 项目名默认就是二级path
+  if (cdnDisabled) {
+    publicPath = `${options.appDomain}${options.appName}/${appVersion}/`;
+    if (publicPath.slice(0, 1) !== '/') {
+      publicPath = '/' + publicPath;
+    }
+  } else {
+    publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`;
+  }
   // html template
   const htmlTemplate = {
     ...application.template,
@@ -72,11 +89,6 @@ module.exports = function (options) {
   // Delete template and templateContent, can't custom
   delete htmlTemplate.template;
   delete htmlTemplate.templateContent;
-  const {
-    webpackConfigPipe,
-    removeStrictFlag,
-    optimizeVue // vue相关合并成一个文件
-  } = application.build;
   // 处理资源引用
   ['scripts', 'links'].forEach((field) => {
     if (htmlTemplate[field]) {
@@ -90,10 +102,15 @@ module.exports = function (options) {
   });
 
   let externalScripts = [];
-  if (isNeedReact) {
-    // 按照以下地址可以在支付宝mobile客户端下走缓存 https://myjsapi.alipay.com/fe/preset-assets.html
-    externalScripts.push('https://as.alipayobjects.com/g/component/react/15.5.4/react.min.js');
-    externalScripts.push('https://as.alipayobjects.com/g/component/react/15.5.4/react-dom.min.js');
+  if (isNeedReact && !manualLoadReact) {
+    if (optimizeReact) {
+      const ext = mode === modeMap.PROD ? '.min.js' : '.js';
+      externalScripts.push(`${publicPath}static/react/react-sets${ext}?v=${reactVersion}`);
+    } else {
+      // 按照以下地址可以在支付宝mobile客户端下走缓存 https://myjsapi.alipay.com/fe/preset-assets.html
+      externalScripts.push('//as.alipayobjects.com/g/component/react/15.5.4/react.min.js');
+      externalScripts.push('//as.alipayobjects.com/g/component/react/15.5.4/react-dom.min.js');
+    }
   }
   // 附加vue statics
   if (optimizeVue) {

@@ -11,6 +11,7 @@ module.exports = {
     'ipos-',
     'air-',
     'kbpos-',
+    'kbbos-',
     'ya-turbine'
   ],
   modeMap: { // Support mode list
@@ -33,5 +34,6 @@ module.exports = {
     }
   },
   localhost, // use 127.0.0.1 serve local server
-  defaultTemplateName: 'ya-template-vue' // 默认模板名
+  defaultTemplateName: 'ya-template-vue', // 默认模板名
+  reactVersion: '15.5.4'
 };

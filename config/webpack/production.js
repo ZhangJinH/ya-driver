@@ -18,10 +18,9 @@ module.exports = function (options) {
   // let {
   //   appName
   // } = project;
-
   if (options.appEnv === 'local') { // 本地Test
     if (!options.appDomain) {
-      options.appDomain = 'local/';
+      options.appDomain = '/';
     }
     if (!options.cdnDomain) {
       options.cdnDomain = '/'; // 本地测试占位
@@ -38,7 +37,8 @@ module.exports = function (options) {
   });
   const {
     singleStyleFile,
-    optimizeStyle
+    optimizeStyle,
+    localNoCompress
   } = application.build;
 
   let cacheGroups = {}; // splitChunks configs
@@ -64,7 +64,7 @@ module.exports = function (options) {
         })
         // new OptimizeCSSAssetsPlugin({})
       ].concat(optimizeStyle ? [new OptimizeCSSAssetsPlugin({})] : []),
-      runtimeChunk: 'single',
+      // runtimeChunk: 'single', // Reduce request number
       splitChunks: {
         chunks: 'all',
         maxAsyncRequests: Infinity,
@@ -72,5 +72,10 @@ module.exports = function (options) {
       }
     }
   };
+  if (options.appEnv === 'local') { // 本地Test
+    if (localNoCompress) { // 本地build不压缩
+      delete configs.optimization;
+    }
+  }
   return configs;
 };
