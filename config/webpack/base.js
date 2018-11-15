@@ -70,7 +70,8 @@ module.exports = function (options) {
     optimizeVue, // vue相关合并成一个文件
     optimizeReact, // react相关合并成一个文件
     manualLoadReact, // 是否由项目本身加载react库文件
-    cdnDisabled // 是否走cdn，默认走cdn
+    cdnDisabled, // 是否走cdn，默认走cdn
+    componentImportAsRequired // 拆分整体引入组件库成按需引入
   } = application.build;
   let publicPath = ''; // 项目名默认就是二级path
   if (cdnDisabled) {
@@ -223,7 +224,26 @@ module.exports = function (options) {
     codeCoverage // Read code coverage configs
   } = application;
   // babel plugins
-  const babelPlugins = [
+  const babelPlugins = ((() => {
+    let plugins = [];
+    let componentImportCfg = componentImportAsRequired;
+    if (typeof componentImportCfg === 'string') { // js文件地址
+      const componentImportCfgPath = path.resolve(projectPath, componentImportCfg);
+      if (fs.existsSync(componentImportCfgPath)) {
+        componentImportCfg = require(componentImportCfgPath)(); // Return array default
+      } else {
+        componentImportCfg = [];
+      }
+    }
+    plugins = plugins.concat(componentImportCfg.map((cfg) => {
+      return [
+        'babel-plugin-import', {
+          ...cfg
+        }
+      ];
+    }));
+    return plugins;
+  })()).concat([
     // Stage 0
     ['@babel/plugin-proposal-function-bind'],
 
@@ -253,19 +273,31 @@ module.exports = function (options) {
 
     // min lodash 经测试，webpack tree-shaking 已经给予lodash优化了
     ['babel-plugin-lodash']
-  ].concat((() => {
+  ]).concat((() => {
+    let plugins = [];
     if (options.test) { // Unit test下插入coverage report
-      return [['babel-plugin-istanbul', {
+      plugins = plugins.concat([['babel-plugin-istanbul', {
         exclude: codeCoverage.exclude
-      }]];
+      }]]);
     }
-    return [];
+    return plugins;
   })()).map((plugin) => {
     plugin[0] = resolveDriverNpm(plugin[0], {
       builtIn: true
     });
     return plugin;
   });
+  /**
+   * Exclude file src from babel and eslint
+   * @param {String} src - File path
+   */
+  const excludeBabelAndLint = function (src) {
+    src = src.split('\\').join('/');
+    if (src.search('src/deps/public') >= 0) { // 忽略/src/deps/public下文件转义和lint
+      return true;
+    }
+    return false;
+  };
 
   const webpackConfig = {
     mode,
@@ -286,6 +318,7 @@ module.exports = function (options) {
         include: [
           getRelativeProjectPath('src')
         ],
+        exclude: excludeBabelAndLint,
         enforce: 'pre',
         use: [{
           loader: 'eslint-loader',
@@ -300,8 +333,6 @@ module.exports = function (options) {
       }, {
         test: /\.vue$/,
         use: [{
-          loader: 'thread-loader' // 多核build支持
-        }, {
           loader: 'vue-loader'
         }]
       }, {
@@ -326,9 +357,8 @@ module.exports = function (options) {
             }
           }
         },
-        use: [{
-          loader: 'thread-loader' // 多核build支持
-        }, {
+        exclude: excludeBabelAndLint,
+        use: [{ // TODO:// !important thread-loader 配合babel-loader使用有bug，会使babel plugin 的自定义配置项非基本类型的配置丢失，比如babel-plugin-import 里的customName配置项因为是函数类型，传到插件里丢失了
           loader: 'babel-loader',
           options: {
             sourceType: 'unambiguous', // !important，缺失设置会导致失败
