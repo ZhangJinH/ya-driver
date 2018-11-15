@@ -14,7 +14,7 @@ const Project = require('../lib/project');
 
 module.exports = function (options) {
   options = merge({
-    mode: modeMap.DEV // Test下依然区分development/production，复用build mode，但目前貌似没多大意义，DEV模式下code不压缩
+    mode: modeMap.PROD // Test下依然区分development/production，development模式下watch file变动
   }, options);
   const project = new Project(options.projectPath); // 放置project相关信息
   const {
@@ -32,7 +32,7 @@ module.exports = function (options) {
   });
   // Delete entry
   delete webpackConfig.entry;
-  // delete webpackConfig.optimization;
+  delete webpackConfig.optimization; // PROD下不走压缩
   delete webpackConfig.output;
   delete webpackConfig.externals;
 
@@ -43,8 +43,7 @@ module.exports = function (options) {
 
   if (!files || !files.length) {
     files = [{
-      pattern: 'test/**/*.spec.js',
-      watched: false
+      pattern: 'test/**/*.spec.js'
     }];
     preprocessors = {
       'test/**/*.spec.js': ['webpack', 'sourcemap']
@@ -54,8 +53,7 @@ module.exports = function (options) {
       let item = file;
       if (typeof item === 'string') {
         item = {
-          pattern: file,
-          watched: false
+          pattern: file
         };
       }
       preprocessors[item.pattern] = ['webpack', 'sourcemap'];
@@ -68,6 +66,8 @@ module.exports = function (options) {
     // browsers: ['ChromeHeadless'], // From project.js
     // singleRun: true,
   }, application.karma, {
+    autoWatch: options.mode === modeMap.DEV,
+    singleRun: options.mode === modeMap.PROD, // 只执行一次
     frameworks: ['mocha', 'chai', 'sinon'],
     basePath: srcPath,
     files,

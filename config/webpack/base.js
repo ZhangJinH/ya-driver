@@ -472,37 +472,39 @@ module.exports = function (options) {
       }))
     ].concat((() => {
       let plugins = [];
-      if (mode === modeMap.PROD) { // 生产环境css提取
-        plugins = [
-          new MiniCssExtractPlugin({
-            filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
-          })
-        ];
-        if (options.appEnv === 'local') {
-          plugins.push(new BundleAnalyzerPlugin({
-            openAnalyzer: !ipcEnabled // ya-gui下单独处理analyzer展示
-          })); // Local test
+      if (!options.test) { // Unit test下不加载多余plugin
+        if (mode === modeMap.PROD) { // 生产环境css提取
+          plugins = [
+            new MiniCssExtractPlugin({
+              filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
+            })
+          ];
+          if (options.appEnv === 'local') {
+            plugins.push(new BundleAnalyzerPlugin({
+              openAnalyzer: !ipcEnabled // ya-gui下单独处理analyzer展示
+            })); // Local test
+          }
+          if (removeStrictFlag) { // 兼容模式去掉 strict flag
+            plugins = plugins.concat([
+              new RemoveStrictFlagPlugin()
+            ]);
+          }
+        } else if (mode === modeMap.DEV) {
+          plugins = [
+            new webpack.HotModuleReplacementPlugin() // Hot replace
+          ];
+          if (isNeedDll) {
+            plugins.push(new webpack.DllReferencePlugin({
+              context: projectPath, // !important
+              manifest: path.resolve(dllPath, './dll-manifest.json')
+            }));
+          }
+          if (removeStrictFlag) { // 兼容模式去掉 strict flag
+            plugins.push(new RemoveStrictFlagPlugin());
+          }
+        } else {
+          plugins = [];
         }
-        if (removeStrictFlag) { // 兼容模式去掉 strict flag
-          plugins = plugins.concat([
-            new RemoveStrictFlagPlugin()
-          ]);
-        }
-      } else if (mode === modeMap.DEV) {
-        plugins = [
-          new webpack.HotModuleReplacementPlugin() // Hot replace
-        ];
-        if (isNeedDll) {
-          plugins.push(new webpack.DllReferencePlugin({
-            context: projectPath, // !important
-            manifest: path.resolve(dllPath, './dll-manifest.json')
-          }));
-        }
-        if (removeStrictFlag) { // 兼容模式去掉 strict flag
-          plugins.push(new RemoveStrictFlagPlugin());
-        }
-      } else {
-        plugins = [];
       }
       // Common
       plugins = plugins.concat([

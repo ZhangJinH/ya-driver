@@ -81,6 +81,7 @@ program
 
 program
   .command('test [project-name]')
+  .option('-M, --mode <value>', 'Run mode') // production or development
   .description('Run unit test drive by karma.')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd, {
