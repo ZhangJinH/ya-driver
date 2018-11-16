@@ -2,6 +2,9 @@
  * Check the execution environment
  */
 const shell = require('shelljs');
+const os = require('os');
+const osType = os.type();
+const commandPrefix = (osType === 'Darwin' ? '/usr/local/bin/' : '');
 module.exports = {
   ready() {
     let preferInstallCMD = ''; // yarn or npm
@@ -22,15 +25,15 @@ module.exports = {
       }
     };
     const envCommands = [{
-      name: 'git',
+      name: `${commandPrefix}git`,
       version: '--version',
       check
-    } /*, {
+    }, /* {
       name: 'python',
       version: '--version',
       check
-    }*/, {
-      name: 'yarn|npm',
+    }, */ {
+      name: `${commandPrefix}yarn|${commandPrefix}npm`,
       version: '-v|-v',
       check: (name, versionArg) => {
         const names = name.split('|');
