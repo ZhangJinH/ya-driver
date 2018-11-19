@@ -212,7 +212,7 @@ module.exports = function (options) {
       styleLoaderName = 'style-loader';
     }
     return [{
-      loader: mode === modeMap.DEV ? styleLoaderName : MiniCssExtractPlugin.loader
+      loader: options.test ? styleLoaderName : (mode === modeMap.DEV ? styleLoaderName : MiniCssExtractPlugin.loader)
     }, {
       loader: 'css-loader',
       options: {
