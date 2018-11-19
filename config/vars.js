@@ -35,5 +35,6 @@ module.exports = {
   },
   localhost, // use 127.0.0.1 serve local server
   defaultTemplateName: 'ya-template-vue', // 默认模板名
-  reactVersion: '15.5.4'
+  reactVersion: '15.5.4',
+  serviceWorkerFilename: 'sw' // 默认service worker name
 };

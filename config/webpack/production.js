@@ -20,10 +20,18 @@ module.exports = function (options) {
   // } = project;
   if (options.appEnv === 'local') { // 本地Test
     if (!options.appDomain) {
-      options.appDomain = '/';
+      if (options.sdk) { // SDK模式下输出本地相对地址
+        options.appDomain = './';
+      } else {
+        options.appDomain = '/';
+      }
     }
     if (!options.cdnDomain) {
-      options.cdnDomain = '/'; // 本地测试占位
+      if (options.sdk) { // SDK模式下输出本地相对地址
+        options.cdnDomain = './'; // 本地测试占位
+      } else {
+        options.cdnDomain = '/'; // 本地测试占位
+      }
     }
   }
   // appName = options.appName || appName; // 应该和project pkg.name一致

@@ -7,6 +7,7 @@ const fs = require('fs');
 const {
   merge
 } = require('lodash');
+const md5 = require('md5');
 const webpack = require('webpack');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -20,14 +21,16 @@ const {
   modeMap,
   browserslist,
   filenameCommonPrefix,
-  reactVersion
+  reactVersion,
+  serviceWorkerFilename
 } = require('../vars');
 const {
   log
 } = require('../../utils/log');
 const {
   ipcEnabled,
-  resolveDriverNpm
+  resolveDriverNpm,
+  getAbsProjectFilePath
 } = require('../../utils/helper');
 const Project = require('../../lib/project');
 
@@ -56,6 +59,7 @@ module.exports = function (options) {
   const {
     outputPath,
     distPath,
+    srcPath,
     appVersion,
     application,
     isNeedReact,
@@ -82,10 +86,54 @@ module.exports = function (options) {
   } else {
     publicPath = `${options.cdnDomain}${options.appName}/${appVersion}/`;
   }
+
+  let staticPath = `/${options.appName}/${appVersion}/static/`; // 静态目录伺服地址，同域下
+
+  if (mode === modeMap.PROD) {
+    if (options.sdk) {
+      console.log(1111111111);
+      publicPath = `./${appVersion}/`;
+      staticPath = `./${appVersion}/`;
+    }
+  }
+  const staticCDN = `${publicPath}static/`; // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
+
+  // 内联scripts/styles
+  const normalizeInlineSS = (inlines) => {
+    return inlines ? [].concat(inlines).map((filePath) => {
+      let absPath = '';
+      if (filePath.slice(0, 2) === '@/') {
+        absPath = path.resolve(srcPath, filePath.slice(2));
+      } else {
+        absPath = path.resolve(projectPath, filePath);
+      }
+      return fs.readFileSync(absPath, 'utf8');
+    }) : [];
+  }
+  let inlineScripts = normalizeInlineSS(application.template.inlineScripts);
+  const serviceWorker = application.serviceWorker;
+  if (serviceWorker) {
+    const serviceWorkerFilePath = getAbsProjectFilePath(projectPath, serviceWorker);
+    if (serviceWorkerFilePath) { // Must exist
+      const swHash = md5(fs.readFileSync(serviceWorkerFilePath));
+      inlineScripts = [`
+        if (window.navigator && window.navigator.serviceWorker) {
+          window.navigator.serviceWorker.register('${serviceWorkerFilename}.js?v=${swHash}').then(function (registration) {
+              console.log('Service worker installed', registration);
+          }).catch(function (err) {
+              console.error('Service worker install failed', err);
+          });
+        }
+      `].concat(inlineScripts);
+    }
+  }
+
   // html template
   const htmlTemplate = {
     ...application.template,
-    title: application.template.title || 'Yazuo App'
+    title: application.template.title || 'Yazuo App',
+    inlineScripts,
+    inlineStyles: normalizeInlineSS(application.template.inlineStyles)
   };
   // Delete template and templateContent, can't custom
   delete htmlTemplate.template;
@@ -495,8 +543,8 @@ module.exports = function (options) {
           APP_NAME: options.appName, // 项目二级path名
           APP_ENV: options.appEnv, // 部署环境
           APP_VERSION: appVersion, // 项目版本号
-          STATIC_PATH: `/${options.appName}/${appVersion}/static/`, // 静态目录伺服地址，同域下
-          STATIC_CDN: `${publicPath}static/` // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
+          STATIC_PATH: staticPath, // 静态目录伺服地址，同域下
+          STATIC_CDN: staticCDN // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
         },
         scripts: (htmlTemplate.scripts || []).concat(externalScripts)
       }))

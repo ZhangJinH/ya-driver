@@ -92,6 +92,18 @@ htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || []
     <%= htmlWebpackPlugin.files[htmlWebpackPlugin.options.inlineManifestWebpackName] %><%
     } %><%
 
+    for (item of htmlWebpackPlugin.options.inlineStyles) { %>
+    <style>
+      <%= item %>
+    </style><%
+    } %><%
+
+    for (item of htmlWebpackPlugin.options.inlineScripts) { %>
+    <script>
+      <%= item %>
+    </script><%
+    } %><%
+
     for (item of htmlWebpackPlugin.options.scripts) { %><%
       if (typeof item === 'string' || item instanceof String) { item = { src: item, type: 'text/javascript' } } %>
     <script<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>></script><%

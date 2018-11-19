@@ -59,7 +59,7 @@ module.exports = {
   isPortTaken(port, fn) {
     const net = require('net');
     const tester = net.createServer().once('error', function (err) {
-      if (err.code != 'EADDRINUSE') {
+      if (err.code !== 'EADDRINUSE') {
         return fn(err);
       }
       fn(null, true);
@@ -68,5 +68,23 @@ module.exports = {
         fn(null, false);
       }).close();
     }).listen(port);
+  },
+  /**
+   * Get absolute file path
+   * @param {String} pp - The project path
+   * @param {String} rp - The project file relative path
+   */
+  getAbsProjectFilePath(pp, rp) {
+    let absPath = '';
+    if (rp.slice(0, 2) === '@/') {
+      absPath = path.resolve(pp, 'src', rp.slice(2));
+    } else {
+      absPath = path.resolve(pp, rp);
+    }
+    if (fs.existsSync(absPath)) { // Must exist
+      return absPath;
+    } else {
+      return '';
+    }
   }
 };
