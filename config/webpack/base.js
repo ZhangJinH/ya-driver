@@ -91,7 +91,6 @@ module.exports = function (options) {
 
   if (mode === modeMap.PROD) {
     if (options.sdk) {
-      console.log(1111111111);
       publicPath = `./${appVersion}/`;
       staticPath = `./${appVersion}/`;
     }
