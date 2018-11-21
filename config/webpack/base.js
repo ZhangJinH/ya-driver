@@ -76,8 +76,12 @@ module.exports = function (options) {
     optimizeVue, // vue相关合并成一个文件
     optimizeReact, // react相关合并成一个文件
     manualLoadReact, // 是否由项目本身加载react库文件
+    manualLoadVue, // 是否由项目本身加载vue库文件
     cdnDisabled, // 是否走cdn，默认走cdn
     componentImportAsRequired, // 拆分整体引入组件库成按需引入
+    ignoreRequestHash
+  } = application.build;
+  let {
     patchjs
   } = application.build;
   let publicPath = ''; // 项目名默认就是二级path
@@ -123,9 +127,9 @@ module.exports = function (options) {
       inlineScripts = [`
         if (window.navigator && window.navigator.serviceWorker) {
           window.navigator.serviceWorker.register('${serviceWorkerFilename}.js?v=${swHash}').then(function (registration) {
-              console.log('Service worker installed', registration);
+            console.log('Service worker installed', registration);
           }).catch(function (err) {
-              console.error('Service worker install failed', err);
+            console.error('Service worker install failed', err);
           });
         }
       `].concat(inlineScripts);
@@ -133,20 +137,42 @@ module.exports = function (options) {
   }
   // Apply patchjs
   let patchBootstrap = '';
+  // 本地环境下如果patchjs被配置，但是patchjs.path没有指定，会直接忽略patchjs机制
+  if (patchjs && options.appDomain === 'local') {
+    if (!patchjs.path) {
+      patchjs = false;
+    }
+  }
   if (patchjs) {
+    patchjs = {
+      path: `https://${options.appDomain}${options.appName}/`, // 默认为所处环境的请求路径
+      validateVersion: true, // 验证当前打包的版本是否已经在path上
+      increment: false, // 默认只启用缓存，不做增量更新
+      count: 1, // 默认只缓存一个版本
+      ...patchjs,
+      waitExternalDeps: patchjs.waitExternalDeps ? [].concat(patchjs.waitExternalDeps) : []
+    };
     const patchjsLibPath = path.resolve(__dirname, `../../deps/patchjs/${patchjsConfig.version}`);
     inlineScripts = normalizeInlineSS([patchjsConfig.dbType + '.js', 'index.js'].map((filename) => {
       return path.resolve(patchjsLibPath, filename);
     })).concat(inlineScripts);
+    // 生成额外依赖模板字符串表示
+    let waitExternalDepsTpl = patchjs.waitExternalDeps.map((depName) => {
+      return `load('${depName}')`;
+    }).join('.');
+    if (waitExternalDepsTpl) {
+      waitExternalDepsTpl += '.';
+    }
     patchBootstrap = `
       patchjs.config({
         cache: true,
-        increment: true,
+        increment: ${patchjs.increment},
+        count: ${patchjs.count},
         path: '${patchjs.path}',
         version: '${appVersion}',
         exceedQuotaErr: function (url) {
         }
-      }).load('plus/css/vendors~main.css').load('plus/js/vendors~main.js').wait(function () {
+      }).${waitExternalDepsTpl}load('plus/css/vendors~main.css').load('plus/js/vendors~main.js').wait(function () {
         console.log('common done!');
       }).load('plus/js/main.js', function (url, fromCache) {
         console.log('index done!');
@@ -188,19 +214,21 @@ module.exports = function (options) {
     }
   }
   // 附加vue statics
-  if (optimizeVue) {
-    ['vue'].forEach((filename) => {
-      const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
-      const ext = mode === modeMap.PROD ? '.min.js' : '.js';
-      externalScripts.push(`${publicPath}static/vue/${filename}-sets${ext}?v=${pkgJson.version}`);
-    });
-  } else {
-    ['vue', 'vuex', 'vue-router'].forEach((filename) => {
-      // const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
-      const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
-      const ext = mode === modeMap.PROD ? '.min.js' : '.js';
-      externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
-    });
+  if (!manualLoadVue) {
+    if (optimizeVue) {
+      ['vue'].forEach((filename) => {
+        const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
+        const ext = mode === modeMap.PROD ? '.min.js' : '.js';
+        externalScripts.push(`${publicPath}static/vue/${filename}-sets${ext}?v=${pkgJson.version}`);
+      });
+    } else {
+      ['vue', 'vuex', 'vue-router'].forEach((filename) => {
+        // const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
+        const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
+        const ext = mode === modeMap.PROD ? '.min.js' : '.js';
+        externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
+      });
+    }
   }
 
   if (mode === modeMap.DEV && isNeedDll) {
@@ -378,10 +406,18 @@ module.exports = function (options) {
    * @param {String} ext - file extension
    */
   const generateOutputName = (ext) => {
-    if (!patchjs) {
+    if (!patchjs && !ignoreRequestHash) {
       return `[name].${ext}?v=[hash]`;
     } else {
       return `[name].${ext}`;
+    }
+  };
+
+  const generateAssetName = () => {
+    if (!ignoreRequestHash) {
+      return `[name].[ext]?v=[hash]`;
+    } else {
+      return `[name].[ext]`;
     }
   };
 
@@ -496,21 +532,21 @@ module.exports = function (options) {
         loader: 'url-loader',
         options: {
           limit: 1024,
-          name: `${filenameCommonPrefix}/img/[name].[ext]?v=[hash]`
+          name: `${filenameCommonPrefix}/img/${generateAssetName()}`
         }
       }, {
         test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
         loader: 'url-loader',
         options: {
           limit: 1024,
-          name: `${filenameCommonPrefix}/media/[name].[ext]?v=[hash]`
+          name: `${filenameCommonPrefix}/media/${generateAssetName()}`
         }
       }, {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
         loader: 'url-loader',
         options: {
           limit: 1024,
-          name: `${filenameCommonPrefix}/fonts/[name].[ext]?v=[hash]`
+          name: `${filenameCommonPrefix}/fonts/${generateAssetName()}`
         }
       }]
     },

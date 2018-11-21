@@ -1521,14 +1521,6 @@ babel-plugin-lodash@3.3.4:
     lodash "^4.17.10"
     require-package-name "^2.0.1"
 
-babel-runtime@^6.23.0:
-  version "6.26.0"
-  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
-  integrity sha1-llxwWGaOgrVde/4E/yM3vItWR/4=
-  dependencies:
-    core-js "^2.4.0"
-    regenerator-runtime "^0.11.0"
-
 backo2@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/backo2/-/backo2-1.0.2.tgz#31ab1ac8b129363463e35b3ebb69f4dfcfba7947"
@@ -2462,7 +2454,7 @@ copy-to@^2.0.1:
   resolved "https://registry.yarnpkg.com/copy-to/-/copy-to-2.0.1.tgz#2680fbb8068a48d08656b6098092bdafc906f4a5"
   integrity sha1-JoD7uAaKSNCGVrYJgJK9r8kG9KU=
 
-core-js@^2.2.0, core-js@^2.4.0, core-js@^2.5.7:
+core-js@^2.2.0, core-js@^2.5.7:
   version "2.5.7"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.7.tgz#f972608ff0cead68b841a16a932d0b183791814e"
   integrity sha512-RszJCAxg/PP6uzXVXL6BsxSXx/B05oJAQ2vkJRjyjrEcNVycaqOmNb5OTxZPE3xa5gwZduqza6L9JOCenh/Ecw==
@@ -6639,21 +6631,21 @@ pascalcase@^0.1.1:
   resolved "https://registry.yarnpkg.com/pascalcase/-/pascalcase-0.1.1.tgz#b363e55e8006ca6fe21784d2db22bd15d7917f14"
   integrity sha1-s2PlXoAGym/iF4TS2yK9FdeRfxQ=
 
-patchjs-diff@^0.1.0:
+patchjs-diff@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/patchjs-diff/-/patchjs-diff-0.1.1.tgz#592e01285521e942df4e011e809b2c415b9b57de"
   integrity sha512-pIoHze597nOjyxYzgEZtJYfrX/1UIysmLQsp4dNlVyNS9SDu1KUQ1S28gf4AeM9fJXngetHgZmG4ByBzznEqmQ==
 
-patchjs-webpack-plugin@^0.1.8:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/patchjs-webpack-plugin/-/patchjs-webpack-plugin-0.1.9.tgz#3365dbda6a39c17e3683f074f4b48b9db464a2c3"
-  integrity sha512-lCXBVi+Z977GluOUSZNULPDn+MGYAz/9btgkb9CIQr5WvPXjFNkNJsDADc8ay6tlXtcl9WbfSI80yx7aVpqx+A==
+patchjs-webpack-plugin@0.1.10-beta:
+  version "0.1.10-beta"
+  resolved "https://registry.yarnpkg.com/patchjs-webpack-plugin/-/patchjs-webpack-plugin-0.1.10-beta.tgz#94cadc1935e73788e9b04a070c79bb453055b629"
+  integrity sha512-X9DjYBpEac2BTG29JE6i/8GhKtw/+ian2NfMfod7QSlh9ESWaHjbjMt7JtXGWV18Wqi+smpP+5XyLm23RrAfww==
   dependencies:
-    babel-runtime "^6.23.0"
+    "@babel/runtime" "^7.0.0"
     cli-table "^0.2.0"
     co "^4.6.0"
     colors "^0.6.2"
-    patchjs-diff "^0.1.0"
+    patchjs-diff "^0.1.1"
     urllib "^2.21.2"
 
 path-browserify@0.0.0:
@@ -7810,7 +7802,7 @@ regenerate@^1.2.1, regenerate@^1.4.0:
   resolved "https://registry.yarnpkg.com/regenerate/-/regenerate-1.4.0.tgz#4a856ec4b56e4077c557589cae85e7a4c8869a11"
   integrity sha512-1G6jJVDWrt0rK99kBjvEtziZNCICAuvIPkSiUFIQxVP06RCVpq3dmDo2oi6ABpYaDYaTRr67BEhL8r1wgEZZKg==
 
-regenerator-runtime@^0.11.0, regenerator-runtime@^0.11.1:
+regenerator-runtime@^0.11.1:
   version "0.11.1"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
   integrity sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==
