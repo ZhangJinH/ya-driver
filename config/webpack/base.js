@@ -157,11 +157,11 @@ module.exports = function (options) {
       return path.resolve(patchjsLibPath, filename);
     })).concat(inlineScripts);
     // 生成额外依赖模板字符串表示
-    let waitExternalDepsTpl = patchjs.waitExternalDeps.map((depName) => {
+    let waitDepsTpl = patchjs.waitDeps.map((depName) => {
       return `load('${depName}')`;
     }).join('.');
-    if (waitExternalDepsTpl) {
-      waitExternalDepsTpl += '.';
+    if (waitDepsTpl) {
+      waitDepsTpl += '.';
     }
     patchBootstrap = `
       patchjs.config({
@@ -172,7 +172,7 @@ module.exports = function (options) {
         version: '${appVersion}',
         exceedQuotaErr: function (url) {
         }
-      }).${waitExternalDepsTpl}load('plus/css/vendors~main.css').load('plus/js/vendors~main.js').wait(function () {
+      }).${waitDepsTpl}wait(function () {
         console.log('common done!');
       }).load('plus/js/main.js', function (url, fromCache) {
         console.log('index done!');
@@ -219,14 +219,16 @@ module.exports = function (options) {
       ['vue'].forEach((filename) => {
         const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
         const ext = mode === modeMap.PROD ? '.min.js' : '.js';
-        externalScripts.push(`${publicPath}static/vue/${filename}-sets${ext}?v=${pkgJson.version}`);
+        const hashStr = ignoreRequestHash ? '' : `?v=${pkgJson.version}`;
+        externalScripts.push(`${publicPath}static/vue/${filename}-sets${ext}${hashStr}`);
       });
     } else {
       ['vue', 'vuex', 'vue-router'].forEach((filename) => {
         // const pkgJson = fsExtra.readJsonSync(path.resolve(__dirname, `../../node_modules/${filename}/package.json`));
         const pkgJson = fsExtra.readJsonSync(resolveDriverNpm(`${filename}/package.json`));
         const ext = mode === modeMap.PROD ? '.min.js' : '.js';
-        externalScripts.push(`${publicPath}static/vue/${filename}${ext}?v=${pkgJson.version}`);
+        const hashStr = ignoreRequestHash ? '' : `?v=${pkgJson.version}`;
+        externalScripts.push(`${publicPath}static/vue/${filename}${ext}${hashStr}`);
       });
     }
   }
