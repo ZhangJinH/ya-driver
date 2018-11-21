@@ -16,13 +16,15 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const ParseAtFlagPlugin = require('./plugins/webpack-parse-at-flag');
 const RemoveStrictFlagPlugin = require('./plugins/webpack-remove-strict-flag');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin'); // import path大小写敏感
+const PatchjsWebpackPlugin = require('patchjs-webpack-plugin');
 const {
   npmOnBabel,
   modeMap,
   browserslist,
   filenameCommonPrefix,
   reactVersion,
-  serviceWorkerFilename
+  serviceWorkerFilename,
+  patchjsConfig
 } = require('../vars');
 const {
   log
@@ -75,7 +77,8 @@ module.exports = function (options) {
     optimizeReact, // react相关合并成一个文件
     manualLoadReact, // 是否由项目本身加载react库文件
     cdnDisabled, // 是否走cdn，默认走cdn
-    componentImportAsRequired // 拆分整体引入组件库成按需引入
+    componentImportAsRequired, // 拆分整体引入组件库成按需引入
+    patchjs
   } = application.build;
   let publicPath = ''; // 项目名默认就是二级path
   if (cdnDisabled) {
@@ -101,14 +104,16 @@ module.exports = function (options) {
   const normalizeInlineSS = (inlines) => {
     return inlines ? [].concat(inlines).map((filePath) => {
       let absPath = '';
-      if (filePath.slice(0, 2) === '@/') {
+      if (path.isAbsolute(filePath)) {
+        absPath = filePath;
+      } else if (filePath.slice(0, 2) === '@/') {
         absPath = path.resolve(srcPath, filePath.slice(2));
       } else {
         absPath = path.resolve(projectPath, filePath);
       }
       return fs.readFileSync(absPath, 'utf8');
     }) : [];
-  }
+  };
   let inlineScripts = normalizeInlineSS(application.template.inlineScripts);
   const serviceWorker = application.serviceWorker;
   if (serviceWorker) {
@@ -125,6 +130,28 @@ module.exports = function (options) {
         }
       `].concat(inlineScripts);
     }
+  }
+  // Apply patchjs
+  let patchBootstrap = '';
+  if (patchjs) {
+    const patchjsLibPath = path.resolve(__dirname, `../../deps/patchjs/${patchjsConfig.version}`);
+    inlineScripts = normalizeInlineSS([patchjsConfig.dbType + '.js', 'index.js'].map((filename) => {
+      return path.resolve(patchjsLibPath, filename);
+    })).concat(inlineScripts);
+    patchBootstrap = `
+      patchjs.config({
+        cache: true,
+        increment: true,
+        path: '${patchjs.path}',
+        version: '${appVersion}',
+        exceedQuotaErr: function (url) {
+        }
+      }).load('plus/css/vendors~main.css').load('plus/js/vendors~main.js').wait(function () {
+        console.log('common done!');
+      }).load('plus/js/main.js', function (url, fromCache) {
+        console.log('index done!');
+      });
+    `;
   }
 
   // html template
@@ -346,6 +373,18 @@ module.exports = function (options) {
     return false;
   };
 
+  /**
+   * Generate the output file name
+   * @param {String} ext - file extension
+   */
+  const generateOutputName = (ext) => {
+    if (!patchjs) {
+      return `[name].${ext}?v=[hash]`;
+    } else {
+      return `[name].${ext}`;
+    }
+  };
+
   const webpackConfig = {
     mode,
     context,
@@ -354,8 +393,8 @@ module.exports = function (options) {
     },
     output: {
       path: outputPath,
-      filename: `${filenameCommonPrefix}/js/[name].js?v=[hash]`,
-      chunkFilename: `${filenameCommonPrefix}/js/[name].js?v=[hash]`,
+      filename: `${filenameCommonPrefix}/js/${generateOutputName('js')}`,
+      chunkFilename: `${filenameCommonPrefix}/js/${generateOutputName('js')}`,
       publicPath
     },
     devtool: mode === modeMap.DEV ? 'eval-source-map' : 'source-map', // chrome devtool更友好
@@ -545,7 +584,8 @@ module.exports = function (options) {
           STATIC_PATH: staticPath, // 静态目录伺服地址，同域下
           STATIC_CDN: staticCDN // 静态目录伺服地址，通过cdn请求，会造成跨域问题，注意请求地址后手动添加版本号
         },
-        scripts: (htmlTemplate.scripts || []).concat(externalScripts)
+        scripts: (htmlTemplate.scripts || []).concat(externalScripts),
+        patchjs: patchBootstrap
       }))
     ].concat((() => {
       let plugins = [];
@@ -553,7 +593,8 @@ module.exports = function (options) {
         if (mode === modeMap.PROD) { // 生产环境css提取
           plugins = [
             new MiniCssExtractPlugin({
-              filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
+              // filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
+              filename: `${filenameCommonPrefix}/css/${generateOutputName('css')}`
             })
           ];
           if (options.appEnv === 'local') {
@@ -565,6 +606,9 @@ module.exports = function (options) {
             plugins = plugins.concat([
               new RemoveStrictFlagPlugin()
             ]);
+          }
+          if (patchjs) {
+            plugins = plugins.concat([new PatchjsWebpackPlugin(patchjs)]);
           }
         } else if (mode === modeMap.DEV) {
           plugins = [
