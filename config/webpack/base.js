@@ -24,7 +24,8 @@ const {
   filenameCommonPrefix,
   reactVersion,
   serviceWorkerFilename,
-  patchjsConfig
+  patchjsConfig,
+  localhost
 } = require('../vars');
 const {
   log
@@ -84,6 +85,7 @@ module.exports = function (options) {
   let {
     patchjs
   } = application.build;
+  const productionPort = application.productionPort;
   let publicPath = ''; // 项目名默认就是二级path
   if (cdnDisabled) {
     publicPath = `${options.appDomain}${options.appName}/${appVersion}/`;
@@ -137,20 +139,25 @@ module.exports = function (options) {
   }
   // Apply patchjs
   let patchBootstrap = '';
+  let patchjsPath = `https://${options.appDomain}${options.appName}/`;
   // 本地环境下如果patchjs被配置，但是patchjs.path没有指定，会直接忽略patchjs机制
-  if (patchjs && options.appDomain === 'local') {
+  if (patchjs && options.appEnv === 'local') {
     if (!patchjs.path) {
-      patchjs = false;
+      if (patchjs.increment) { // 增量更新必须提供path，否则自动取消patchjs效果
+        patchjs = false;
+      } else { // 非增量更新本地可以开启cache
+        patchjsPath = `http://${localhost}:${productionPort}/${options.appName}/`;
+      }
     }
   }
   if (patchjs) {
     patchjs = {
-      path: `https://${options.appDomain}${options.appName}/`, // 默认为所处环境的请求路径
-      validateVersion: true, // 验证当前打包的版本是否已经在path上
+      path: patchjsPath, // 默认为所处环境的请求路径
+      validateVersion: false, // 验证当前打包的版本是否已经在path上
       increment: false, // 默认只启用缓存，不做增量更新
       count: 1, // 默认只缓存一个版本
       ...patchjs,
-      waitExternalDeps: patchjs.waitExternalDeps ? [].concat(patchjs.waitExternalDeps) : []
+      waitDeps: patchjs.waitDeps ? [].concat(patchjs.waitDeps) : []
     };
     const patchjsLibPath = path.resolve(__dirname, `../../deps/patchjs/${patchjsConfig.version}`);
     inlineScripts = normalizeInlineSS([patchjsConfig.dbType + '.js', 'index.js'].map((filename) => {

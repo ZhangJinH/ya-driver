@@ -40,6 +40,8 @@ htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || []
     <link<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %> /><%
     } %><%
 
+    if (!htmlWebpackPlugin.options.patchjs) { %><%
+
     for (key in htmlWebpackPlugin.files.css) { %><%
       if (htmlWebpackPlugin.files.cssIntegrity) { %>
     <link
@@ -50,6 +52,8 @@ htmlWebpackPlugin.options.scripts = htmlWebpackPlugin.options.scripts || []
       } else { %>
     <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" /><%
       } %><%
+    }
+  
     } %><%
     if (htmlWebpackPlugin.options.headHtmlSnippet) { %>
     <%= htmlWebpackPlugin.options.headHtmlSnippet %><%
