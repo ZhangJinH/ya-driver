@@ -275,9 +275,24 @@ module.exports = function (options) {
     if (preProcessor === 'stylus') { // TODO: stylus文件单独加载用vue-style-loader会导致HMR失效，待查
       styleLoaderName = 'style-loader';
     }
-    return [{
-      loader: options.test ? styleLoaderName : (mode === modeMap.DEV ? styleLoaderName : MiniCssExtractPlugin.loader)
-    }, {
+    let firstStyleLoader = {};
+    if (options.test) {
+      firstStyleLoader.loader = styleLoaderName;
+    } else {
+      if (mode === modeMap.DEV) {
+        firstStyleLoader.loader = styleLoaderName;
+      } else if (mode === modeMap.PROD) {
+        firstStyleLoader.loader = MiniCssExtractPlugin.loader;
+        if (options.sdk) {
+          firstStyleLoader.options = {
+            publicPath: `../../` // sdk模式下将meta引用地址重定位到dist/plus目录层
+          };
+        }
+      } else {
+        firstStyleLoader = null;
+      }
+    }
+    return [firstStyleLoader, {
       loader: 'css-loader',
       options: {
         importLoaders: 1, // 貌似意思是import语句给下面postcss-loader处理
@@ -492,6 +507,7 @@ module.exports = function (options) {
         use: [{ // TODO:// !important thread-loader 配合babel-loader使用有bug，会使babel plugin 的自定义配置项非基本类型的配置丢失，比如babel-plugin-import 里的customName配置项因为是函数类型，传到插件里丢失了
           loader: 'babel-loader',
           options: {
+            babelrc: false, // Disable read project root .babelrc file
             sourceType: 'unambiguous', // !important，缺失设置会导致失败
             presets: [['@babel/preset-env', {
               modules: false, // Leave for webpack
@@ -636,11 +652,12 @@ module.exports = function (options) {
       let plugins = [];
       if (!options.test) { // Unit test下不加载多余plugin
         if (mode === modeMap.PROD) { // 生产环境css提取
+          let miniCssExtractCfg = {
+            // filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
+            filename: `${filenameCommonPrefix}/css/${generateOutputName('css')}`
+          };
           plugins = [
-            new MiniCssExtractPlugin({
-              // filename: `${filenameCommonPrefix}/css/[name].css?v=[contenthash]`
-              filename: `${filenameCommonPrefix}/css/${generateOutputName('css')}`
-            })
+            new MiniCssExtractPlugin(miniCssExtractCfg)
           ];
           if (options.appEnv === 'local') {
             plugins.push(new BundleAnalyzerPlugin({

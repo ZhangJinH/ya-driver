@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "The driver support Ya GUI or Ya cli. docker image",
   "main": "index.js",
   "bin": {
