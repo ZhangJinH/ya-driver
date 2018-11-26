@@ -86,6 +86,7 @@ module.exports = function (options) {
     patchjs
   } = application.build;
   const productionPort = application.productionPort;
+  const devPort = application.devPort;
   let publicPath = ''; // 项目名默认就是二级path
   if (cdnDisabled) {
     publicPath = `${options.appDomain}${options.appName}/${appVersion}/`;
@@ -146,9 +147,13 @@ module.exports = function (options) {
       if (patchjs.increment) { // 增量更新必须提供path，否则自动取消patchjs效果
         patchjs = false;
       } else { // 非增量更新本地可以开启cache
-        patchjsPath = `http://${localhost}:${productionPort}/${options.appName}/`;
+        const port = (mode === modeMap.PROD ? productionPort : devPort);
+        patchjsPath = `http://${localhost}:${port}/${options.appName}/`;
       }
     }
+  }
+  if (mode === modeMap.DEV) { // Development mode下禁用patchjs模式
+    patchjs = false;
   }
   if (patchjs) {
     patchjs = {
@@ -430,11 +435,15 @@ module.exports = function (options) {
    * @param {String} ext - file extension
    */
   const generateOutputName = (ext) => {
-    if (!patchjs && !ignoreRequestHash) {
-      // return `[name].${ext}?v=[hash]`;
-      return `[name]-[chunkhash].${ext}`;
-    } else {
+    if (mode === modeMap.DEV) {
       return `[name].${ext}`;
+    } else {
+      if (!patchjs && !ignoreRequestHash) {
+        // return `[name].${ext}?v=[hash]`;
+        return `[name]-[chunkhash].${ext}`;
+      } else {
+        return `[name].${ext}`;
+      }
     }
   };
 
