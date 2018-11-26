@@ -431,7 +431,8 @@ module.exports = function (options) {
    */
   const generateOutputName = (ext) => {
     if (!patchjs && !ignoreRequestHash) {
-      return `[name].${ext}?v=[hash]`;
+      // return `[name].${ext}?v=[hash]`;
+      return `[name]-[chunkhash].${ext}`;
     } else {
       return `[name].${ext}`;
     }
@@ -439,7 +440,7 @@ module.exports = function (options) {
 
   const generateAssetName = () => {
     if (!ignoreRequestHash) {
-      return `[name].[ext]?v=[hash]`;
+      return `[name]-[hash].[ext]`;
     } else {
       return `[name].[ext]`;
     }
