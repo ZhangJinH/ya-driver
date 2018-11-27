@@ -80,7 +80,8 @@ module.exports = function (options) {
     manualLoadVue, // 是否由项目本身加载vue库文件
     cdnDisabled, // 是否走cdn，默认走cdn
     componentImportAsRequired, // 拆分整体引入组件库成按需引入
-    ignoreRequestHash
+    ignoreRequestHash,
+    singleStyleFile
   } = application.build;
   let {
     patchjs
@@ -138,6 +139,7 @@ module.exports = function (options) {
       `].concat(inlineScripts);
     }
   }
+  let externalScripts = []; // 额外script依赖
   // Apply patchjs
   let patchBootstrap = '';
   let patchjsPath = `https://${options.appDomain}${options.appName}/`;
@@ -152,44 +154,55 @@ module.exports = function (options) {
       }
     }
   }
-  if (mode === modeMap.DEV) { // Development mode下禁用patchjs模式
-    patchjs = false;
-  }
   if (patchjs) {
-    patchjs = {
-      path: patchjsPath, // 默认为所处环境的请求路径
-      validateVersion: false, // 验证当前打包的版本是否已经在path上
-      increment: false, // 默认只启用缓存，不做增量更新
-      count: 1, // 默认只缓存一个版本
-      ...patchjs,
-      waitDeps: patchjs.waitDeps ? [].concat(patchjs.waitDeps) : []
-    };
-    const patchjsLibPath = path.resolve(__dirname, `../../deps/patchjs/${patchjsConfig.version}`);
-    inlineScripts = normalizeInlineSS([patchjsConfig.dbType + '.js', 'index.js'].map((filename) => {
-      return path.resolve(patchjsLibPath, filename);
-    })).concat(inlineScripts);
-    // 生成额外依赖模板字符串表示
-    let waitDepsTpl = patchjs.waitDeps.map((depName) => {
-      return `load('${depName}')`;
-    }).join('.');
-    if (waitDepsTpl) {
-      waitDepsTpl += '.';
-    }
-    patchBootstrap = `
-      patchjs.config({
-        cache: true,
-        increment: ${patchjs.increment},
-        count: ${patchjs.count},
-        path: '${patchjs.path}',
-        version: '${appVersion}',
-        exceedQuotaErr: function (url) {
-        }
-      }).${waitDepsTpl}wait(function () {
-        console.log('common done!');
-      }).load('plus/js/main.js', function (url, fromCache) {
-        console.log('index done!');
+    // 开发模式下禁用patchjs，不兼容hot replace
+    if (mode === modeMap.DEV) {
+      const waitDeps = patchjs.waitDeps;
+      waitDeps.forEach((depUri) => {
+        externalScripts.push(`${patchjsPath}${appVersion}/${depUri}`);
       });
-    `;
+      patchjs = false;
+    } else if (mode === modeMap.PROD) {
+      patchjs = {
+        path: patchjsPath, // 默认为所处环境的请求路径
+        validateVersion: false, // 验证当前打包的版本是否已经在path上
+        increment: false, // 默认只启用缓存，不做增量更新
+        count: 1, // 默认只缓存一个版本
+        ...patchjs,
+        waitDeps: patchjs.waitDeps ? [].concat(patchjs.waitDeps) : []
+      };
+      const patchjsLibPath = path.resolve(__dirname, `../../deps/patchjs/${patchjsConfig.version}`);
+      inlineScripts = normalizeInlineSS([patchjsConfig.dbType + '.js', 'index.js'].map((filename) => {
+        return path.resolve(patchjsLibPath, filename);
+      })).concat(inlineScripts);
+      // 生成额外依赖模板字符串表示
+      let waitDepsTpl = patchjs.waitDeps.map((depName) => {
+        return `load('${depName}')`;
+      }).join('.');
+      if (waitDepsTpl) {
+        waitDepsTpl += '.';
+      }
+      if (singleStyleFile) {
+        waitDepsTpl += `load('plus/css/styles.css').load('plus/js/vendors~main.js').load('plus/js/styles.js').`;
+      } else {
+        waitDepsTpl += `load('plus/css/vendors~main.css').load('plus/css/main.css').load('plus/js/vendors~main.js').`;
+      }
+      patchBootstrap = `
+        patchjs.config({
+          cache: true,
+          increment: ${patchjs.increment},
+          count: ${patchjs.count},
+          path: '${patchjs.path}',
+          version: '${appVersion}',
+          exceedQuotaErr: function (url) {
+          }
+        }).${waitDepsTpl}wait(function () {
+          console.log('common done!');
+        }).load('plus/js/main.js', function (url, fromCache) {
+          console.log('index done!');
+        });
+      `;
+    }
   }
 
   // html template
@@ -214,7 +227,6 @@ module.exports = function (options) {
     }
   });
 
-  let externalScripts = [];
   if (isNeedReact && !manualLoadReact) {
     if (optimizeReact) {
       const ext = mode === modeMap.PROD ? '.min.js' : '.js';
