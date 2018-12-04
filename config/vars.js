@@ -11,7 +11,8 @@ module.exports = {
     'ipos-',
     'air-',
     'kbpos-',
-    'kbbos-',
+    'kbbox-',
+    'ya-business',
     'ya-turbine'
   ],
   modeMap: { // Support mode list
