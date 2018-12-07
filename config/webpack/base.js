@@ -150,7 +150,7 @@ module.exports = function (options) {
         patchjs = false;
       } else { // 非增量更新本地可以开启cache
         const port = (mode === modeMap.PROD ? productionPort : devPort);
-        patchjsPath = `http://${localhost}:${port}/${options.appName}/`;
+        patchjsPath = `http://${localhost}:${port}/${options.appName}/`; // !important 写死域名可能导致手机访问请求不到资源
       }
     }
   }
@@ -159,7 +159,11 @@ module.exports = function (options) {
     if (mode === modeMap.DEV) {
       const waitDeps = patchjs.waitDeps;
       waitDeps.forEach((depUri) => {
-        externalScripts.push(`${patchjsPath}${appVersion}/${depUri}`);
+        if (!/^(http(s)?|ftp):\/\//.test(depUri)) {
+          externalScripts.push(`${publicPath}${depUri}`);
+        } else {
+          externalScripts.push(depUri); // 外部域名
+        }
       });
       patchjs = false;
     } else if (mode === modeMap.PROD) {
