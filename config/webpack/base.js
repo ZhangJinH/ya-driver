@@ -25,7 +25,8 @@ const {
   reactVersion,
   serviceWorkerFilename,
   patchjsConfig,
-  localhost
+  localhost,
+  presetLibs
 } = require('../vars');
 const {
   log
@@ -160,6 +161,15 @@ module.exports = function (options) {
       const waitDeps = patchjs.waitDeps;
       waitDeps.forEach((depUri) => {
         if (!/^(http(s)?|ftp):\/\//.test(depUri)) {
+          const depName = path.basename(depUri, '.js');
+          if (presetLibs.some((libName) => {
+            return libName + '.min' === depName;
+          })) {
+            let depPathArr = depUri.split('/');
+            depPathArr.pop();
+            // 替换.min文件为未压缩预设库文件
+            depUri = depPathArr.join('/') + '/' + depName.replace('.min', '') + '.js';
+          }
           externalScripts.push(`${publicPath}${depUri}`);
         } else {
           externalScripts.push(depUri); // 外部域名

@@ -41,5 +41,6 @@ module.exports = {
   patchjsConfig: {
     version: '2.0.2',
     dbType: 'websqldb'
-  }
+  },
+  presetLibs: ['react', 'react-dom', 'react-sets', 'vue', 'vuex', 'vue-router', 'vue-sets'] // 预设可能加载的所有库文件
 };
