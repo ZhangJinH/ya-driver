@@ -43,10 +43,10 @@ module.exports = function (options) {
 
   if (!files || !files.length) {
     files = [{
-      pattern: 'test/**/*.spec.js'
+      pattern: 'src/test/**/*.spec.js'
     }];
     preprocessors = {
-      'test/**/*.spec.js': ['webpack', 'sourcemap']
+      'src/test/**/*.spec.js': ['webpack', 'sourcemap']
     };
   } else {
     files = files.map((file) => {

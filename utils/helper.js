@@ -86,5 +86,11 @@ module.exports = {
     } else {
       return '';
     }
+  },
+  /**
+   * Escape log message
+   */
+  escapeBufferLog(data) {
+    return data.toString('utf8').replace(/\\/g, '\\\\').replace(/`/g, '\\`');
   }
 };

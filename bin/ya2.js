@@ -82,12 +82,23 @@ program
 program
   .command('test [project-name]')
   .option('-M, --mode <value>', 'Run mode') // production or development
-  .description('Run unit test drive by karma.')
+  .description('Run unit test powered by karma.')
   .action((projectName, cmd) => {
     const options = normalizeOpts(projectName, cmd, {
       command: 'test'
     });
     require('../lib/test')(options);
+  });
+
+program
+  .command('api [project-name]')
+  .option('-N, --node [value]', 'Given a node binary path power JSDoc')
+  .description('Generate api documents powered by JSDoc.')
+  .action((projectName, cmd) => {
+    const options = normalizeOpts(projectName, cmd, {
+      command: 'api'
+    });
+    require('../lib/api')(options);
   });
 
 // add some useful info on help

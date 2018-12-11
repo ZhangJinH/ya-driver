@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -1328,6 +1328,9 @@
         "require-package-name": "2.0.1"
       }
     },
+    "babylon": {
+      "version": "7.0.0-beta.19"
+    },
     "backo2": {
       "version": "1.0.2"
     },
@@ -1712,6 +1715,12 @@
     },
     "caseless": {
       "version": "0.12.0"
+    },
+    "catharsis": {
+      "version": "0.8.9",
+      "requires": {
+        "underscore-contrib": "0.3.0"
+      }
     },
     "caw": {
       "version": "2.0.1",
@@ -4512,8 +4521,44 @@
         }
       }
     },
+    "js2xmlparser": {
+      "version": "3.0.0",
+      "requires": {
+        "xmlcreate": "1.0.2"
+      }
+    },
     "jsbn": {
       "version": "0.1.1"
+    },
+    "jsdoc": {
+      "version": "3.5.5",
+      "requires": {
+        "babylon": "7.0.0-beta.19",
+        "bluebird": "3.5.3",
+        "catharsis": "0.8.9",
+        "escape-string-regexp": "1.0.5",
+        "js2xmlparser": "3.0.0",
+        "klaw": "2.0.0",
+        "marked": "0.3.19",
+        "mkdirp": "0.5.1",
+        "requizzle": "0.2.1",
+        "strip-json-comments": "2.0.1",
+        "taffydb": "2.6.2",
+        "underscore": "1.8.3"
+      },
+      "dependencies": {
+        "underscore": {
+          "version": "1.8.3"
+        }
+      }
+    },
+    "jsdoc-vuejs": {
+      "version": "2.3.3",
+      "requires": {
+        "ejs": "2.6.1",
+        "jsdoc": "3.5.5",
+        "vue-template-compiler": "2.5.20"
+      }
     },
     "jsesc": {
       "version": "0.5.0"
@@ -4672,6 +4717,12 @@
       "version": "3.2.2",
       "requires": {
         "is-buffer": "1.1.6"
+      }
+    },
+    "klaw": {
+      "version": "2.0.0",
+      "requires": {
+        "graceful-fs": "4.1.15"
       }
     },
     "last-call-webpack-plugin": {
@@ -4911,6 +4962,9 @@
         "object-visit": "1.0.1"
       }
     },
+    "marked": {
+      "version": "0.3.19"
+    },
     "md5": {
       "version": "2.2.1",
       "requires": {
@@ -5031,6 +5085,9 @@
     },
     "mimic-fn": {
       "version": "1.2.0"
+    },
+    "minami": {
+      "version": "1.2.3"
     },
     "mini-css-extract-plugin": {
       "version": "0.4.2",
@@ -7257,6 +7314,12 @@
     "requires-port": {
       "version": "1.0.0"
     },
+    "requizzle": {
+      "version": "0.2.1",
+      "requires": {
+        "underscore": "1.6.0"
+      }
+    },
     "resolve": {
       "version": "1.8.1",
       "requires": {
@@ -8042,6 +8105,9 @@
         }
       }
     },
+    "taffydb": {
+      "version": "2.6.2"
+    },
     "tapable": {
       "version": "1.1.0"
     },
@@ -8361,6 +8427,12 @@
     "underscore": {
       "version": "1.6.0"
     },
+    "underscore-contrib": {
+      "version": "0.3.0",
+      "requires": {
+        "underscore": "1.6.0"
+      }
+    },
     "unescape": {
       "version": "1.0.1",
       "requires": {
@@ -8629,7 +8701,7 @@
       "version": "2.0.1"
     },
     "vue": {
-      "version": "2.5.17"
+      "version": "2.5.20"
     },
     "vue-eslint-parser": {
       "version": "3.2.2",
@@ -8666,7 +8738,7 @@
       }
     },
     "vue-template-compiler": {
-      "version": "2.5.17",
+      "version": "2.5.20",
       "requires": {
         "de-indent": "1.0.2",
         "he": "1.2.0"
@@ -8932,6 +9004,9 @@
         "safe-buffer": "5.1.2",
         "ultron": "1.1.1"
       }
+    },
+    "xmlcreate": {
+      "version": "1.0.2"
     },
     "xmlhttprequest-ssl": {
       "version": "1.5.5"

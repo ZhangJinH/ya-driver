@@ -19,6 +19,7 @@ module.exports = function (projectName, cmd, cfg) {
   // options.context = projectContext;
   options.projectPath = projectPath;
   options.projectName = projectName;
+  options.nodeLibBin = options.node || 'node'; // 默认child_process node driver
   if (options.appDomain) {
     if (options.appDomain.slice(-1) !== '/') { // 保证以/结尾
       options.appDomain = options.appDomain + '/';

@@ -1,8 +1,10 @@
 /**
  * Preset variables
  */
+const path = require('path');
 const defaultMockServerPort = 3001;
 const localhost = '127.0.0.1';
+
 module.exports = {
   // Default npm registry
   registry: 'https://registry.npm.taobao.org',
@@ -42,5 +44,7 @@ module.exports = {
     version: '2.0.2',
     dbType: 'websqldb'
   },
-  presetLibs: ['react', 'react-dom', 'react-sets', 'vue', 'vuex', 'vue-router', 'vue-sets'] // 预设可能加载的所有库文件
+  presetLibs: ['react', 'react-dom', 'react-sets', 'vue', 'vuex', 'vue-router', 'vue-sets'], // 预设可能加载的所有库文件
+  jsdocBin: path.resolve(__dirname, '../node_modules/jsdoc/jsdoc.js'),
+  jsdocConf: path.resolve(__dirname, './jsdoc-conf.js')
 };
