@@ -16,20 +16,15 @@ module.exports = {
   },
   plugins: [
     'plugins/markdown',
-    'node_modules/jsdoc-vuejs'
-  ].map((rp) => {
-    if (rp.slice(0, 13) === 'node_modules/') {
-      return path.resolve(__dirname, `../${rp}`)
-    } else {
-      return rp;
-    }
-  }),
+    require.resolve('jsdoc-vuejs')
+  ],
   source: {
     includePattern: '\\.(vue|js)$'
   },
   opts: {
     encoding: 'utf8',
     recurse: true,
-    template: path.resolve(__dirname, '../node_modules/minami')
+    // template: path.resolve(__dirname, '../node_modules/minami')
+    template: path.dirname(require.resolve('minami'))
   }
 };

@@ -38,10 +38,7 @@ module.exports = function (options) {
   // Assemble configuration
   const cfg = {
     ...application.jsdoc,
-    files,
-    plugins: [
-      'node_modules/jsdoc-vuejs'
-    ]
+    files
   };
   return cfg;
 };

@@ -45,6 +45,6 @@ module.exports = {
     dbType: 'websqldb'
   },
   presetLibs: ['react', 'react-dom', 'react-sets', 'vue', 'vuex', 'vue-router', 'vue-sets'], // 预设可能加载的所有库文件
-  jsdocBin: path.resolve(__dirname, '../node_modules/jsdoc/jsdoc.js'),
+  jsdocBin: require.resolve('jsdoc/jsdoc.js'),
   jsdocConf: path.resolve(__dirname, './jsdoc-conf.js')
 };
