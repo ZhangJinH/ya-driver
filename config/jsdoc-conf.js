@@ -9,7 +9,7 @@ module.exports = {
     dictionaries: ['jsdoc']
   },
   templates: {
-    cleverLinks: false,
+    cleverLinks: true,
     monospaceLinks: true,
     useLongnameInNav: false,
     showInheritedInNav: true
