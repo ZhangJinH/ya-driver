@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -4557,16 +4557,7 @@
       "requires": {
         "ejs": "2.6.1",
         "jsdoc": "3.5.5",
-        "vue-template-compiler": "2.5.20"
-      },
-      "dependencies": {
-        "vue-template-compiler": {
-          "version": "2.5.20",
-          "requires": {
-            "de-indent": "1.0.2",
-            "he": "1.2.0"
-          }
-        }
+        "vue-template-compiler": "2.5.17"
       }
     },
     "jsesc": {
