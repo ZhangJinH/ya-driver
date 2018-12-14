@@ -1,6 +1,6 @@
 {
   "name": "ya-driver",
-  "version": "1.9.0",
+  "version": "1.9.3",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -4558,6 +4558,15 @@
         "ejs": "2.6.1",
         "jsdoc": "3.5.5",
         "vue-template-compiler": "2.5.20"
+      },
+      "dependencies": {
+        "vue-template-compiler": {
+          "version": "2.5.20",
+          "requires": {
+            "de-indent": "1.0.2",
+            "he": "1.2.0"
+          }
+        }
       }
     },
     "jsesc": {
@@ -8701,7 +8710,7 @@
       "version": "2.0.1"
     },
     "vue": {
-      "version": "2.5.20"
+      "version": "2.5.17"
     },
     "vue-eslint-parser": {
       "version": "3.2.2",
@@ -8738,7 +8747,7 @@
       }
     },
     "vue-template-compiler": {
-      "version": "2.5.20",
+      "version": "2.5.17",
       "requires": {
         "de-indent": "1.0.2",
         "he": "1.2.0"
