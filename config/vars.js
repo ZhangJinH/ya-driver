@@ -15,7 +15,8 @@ module.exports = {
     'kbpos-',
     'kbbox-',
     'ya-business',
-    'ya-turbine'
+    'ya-turbine',
+    'ya-vue-antd'
   ],
   modeMap: { // Support mode list
     DEV: 'development',
