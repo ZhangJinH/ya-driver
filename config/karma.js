@@ -18,7 +18,6 @@ module.exports = function (options) {
   }, options);
   const project = new Project(options.projectPath); // 放置project相关信息
   const {
-    srcPath,
     coveragePath,
     application
   } = project;
@@ -69,7 +68,7 @@ module.exports = function (options) {
     autoWatch: options.mode === modeMap.DEV,
     singleRun: options.mode === modeMap.PROD, // 只执行一次
     frameworks: ['mocha', 'chai', 'sinon'],
-    basePath: srcPath,
+    basePath: options.projectPath,
     files,
     preprocessors,
     webpack: webpackConfig,
