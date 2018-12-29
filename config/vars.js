@@ -28,7 +28,7 @@ module.exports = {
   defaultDevServerPort: 8080, // Default mode == development server port
   defaultProdServerPort: 8081, // Default mode === production server port
   defaultMockServerPort, // Default mock port
-  proxyTable: { // 自行配置在此处
+  defaultProxyTable: { // 自行配置在此处
     '/mock': {
       target: `http://${localhost}:${defaultMockServerPort}`,
       pathRewrite: {
